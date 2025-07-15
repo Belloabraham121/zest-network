@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+      - AFRICAS_TALKING_API_KEY=${AFRICAS_TALKING_API_KEY}
+      - AFRICAS_TALKING_USERNAME=${AFRICAS_TALKING_USERNAME}
+      - USSD_SHORTCODE=${USSD_SHORTCODE}
+      - MONGO_URI=mongodb://mongo:27017/zest
+      - MANTLE_RPC_URL=${MANTLE_RPC_URL}
+      - MANTLE_PRIVATE_KEY=${MANTLE_PRIVATE_KEY}
+      - USDC_ADDRESS=${USDC_ADDRESS}
+      - ESCROW_ADDRESS=${ESCROW_ADDRESS}
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - zest-network
+  mongo:
+    image: mongo:6
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - zest-network
+  redis:
+    image: redis:7
+    volumes:
+      - redis-data:/data
+    networks:
+      - zest-network
+networks:
+  zest-network:
+    driver: bridge
+volumes:
+  mongo-data:
+  redis-data:

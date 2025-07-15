@@ -1,0 +1,13 @@
+.env
+node_modules/
+dist/
+# Ignore Postman instruction files
+*-post-r-pm-*
+*-pre-r-pm-*
+*-post-c-pm-*
+*-pre-c-pm-*
+*-post-f-pm-*
+*-pre-f-pm-*
+/var/folders/
+.DS_Store
+package-lock.json

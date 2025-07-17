@@ -16,7 +16,7 @@ Users send "CREATE" via WhatsApp or SMS to generate a unique Ethereum wallet, de
 
 ### ⛽ Gasless Transactions
 
-Supports EIP-2612 for gasless token approvals (e.g., USDC), with the backend covering gas fees on Mantle and deducting a 1% fee via an escrow contract.
+Supports EIP-2612 for gasless token approvals (e.g., USDC), with the backend covering gas fees on Mantle and deducting a fee.
 
 ### 📱 WhatsApp Integration
 
@@ -48,16 +48,10 @@ Private keys are encrypted using Node.js crypto (AES-256-GCM) with a secret key,
 ### Use Cases
 
 - Creating wallets
+- Sending and receiving tokens
 - Swapping tokens (e.g., USDC to DAI)
 - Bridging assets across chains (e.g., Mantle to Ethereum)
 - Unstaking tokens via simple text commands
-
-### Telco Support
-
-Compatible with major providers:
-
-- **Nigeria**: MTN, Airtel, Glo
-- **Kenya**: Safaricom, Airtel
 
 ## Technology Stack
 

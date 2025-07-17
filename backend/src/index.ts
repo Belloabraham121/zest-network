@@ -4,6 +4,7 @@ import "dotenv/config";
 import whatsappRoutes from "./routes/whatsapp";
 import smsRoutes from "./routes/sms";
 import ussdRoutes from "./routes/ussd";
+import walletsRoutes from "./routes/wallets";
 
 // TODO: ✅ Task 13: Setup Express server with webhook routes
 
@@ -31,6 +32,9 @@ app.use("/webhooks/whatsapp", whatsappRoutes);
 app.use("/webhooks/sms", smsRoutes);
 app.use("/webhooks/ussd", ussdRoutes);
 
+// API routes
+app.use("/api/wallets", walletsRoutes);
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -40,7 +44,8 @@ app.get("/health", (req, res) => {
     endpoints: {
       whatsapp: "/webhooks/whatsapp/webhook",
       sms: "/webhooks/sms/webhook",
-      ussd: "/webhooks/ussd/webhook"
+      ussd: "/webhooks/ussd/webhook",
+      wallets: "/api/wallets"
     }
   });
 });
@@ -56,7 +61,8 @@ app.get("/", (req, res) => {
       health: "/health",
       whatsapp: "/webhooks/whatsapp/webhook",
       sms: "/webhooks/sms/webhook",
-      ussd: "/webhooks/ussd/webhook"
+      ussd: "/webhooks/ussd/webhook",
+      wallets: "/api/wallets"
     }
   });
 });
@@ -67,6 +73,7 @@ app.listen(PORT, () => {
   console.log(`📱 WhatsApp webhook: http://localhost:${PORT}/webhooks/whatsapp/webhook`);
   console.log(`📨 SMS webhook: http://localhost:${PORT}/webhooks/sms/webhook`);
   console.log(`📞 USSD webhook: http://localhost:${PORT}/webhooks/ussd/webhook`);
+  console.log(`💼 Wallets API: http://localhost:${PORT}/api/wallets`);
   console.log(`❤️ Health check: http://localhost:${PORT}/health`);
 });
 

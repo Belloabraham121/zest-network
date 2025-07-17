@@ -2,24 +2,22 @@ import mongoose from "mongoose";
 import { env } from "../config/env";
 import { Wallet, UserConsent } from "../types";
 
-// Updated Wallet Schema with encrypted private key
 const WalletSchema = new mongoose.Schema<Wallet>({
   phone: { type: String, required: true, unique: true },
   address: { type: String, required: true },
-  encryptedPrivateKey: { type: String, required: true }, // AES-256-GCM encrypted
-  iv: { type: String, required: true }, // Initialization vector for encryption
-  authTag: { type: String, required: true }, // Authentication tag for GCM
+  encryptedPrivateKey: { type: String, required: true },
+  iv: { type: String, required: true },
+  authTag: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-// User Consent Schema for tracking user agreements
 const ConsentSchema = new mongoose.Schema<UserConsent>({
   phone: { type: String, required: true, unique: true },
   hasAgreedToTerms: { type: Boolean, required: true, default: false },
   consentTimestamp: { type: Date, default: Date.now },
   ipAddress: { type: String },
-  userAgent: { type: String }
+  userAgent: { type: String },
 });
 
 const WalletModel = mongoose.model<Wallet>("Wallet", WalletSchema);
@@ -30,7 +28,6 @@ export class DatabaseService {
     await mongoose.connect(env.MONGO_URI);
   }
 
-  // Wallet operations
   async getWallet(phone: string): Promise<Wallet | null> {
     return WalletModel.findOne({ phone }).exec();
   }
@@ -44,7 +41,20 @@ export class DatabaseService {
     return !!wallet;
   }
 
-  // Consent operations
+  async getAllWallets(): Promise<
+    { phone: string; address: string; createdAt: Date }[]
+  > {
+    const wallets = await WalletModel.find(
+      {},
+      { phone: 1, address: 1, createdAt: 1, _id: 0 }
+    ).exec();
+    return wallets.map((wallet) => ({
+      phone: wallet.phone,
+      address: wallet.address,
+      createdAt: wallet.createdAt || new Date(),
+    }));
+  }
+
   async getUserConsent(phone: string): Promise<UserConsent | null> {
     return ConsentModel.findOne({ phone }).exec();
   }

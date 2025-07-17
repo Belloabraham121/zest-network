@@ -3,7 +3,6 @@ import { walletService } from "../services/wallet.service";
 import { WhatsappPayload } from "../types";
 
 export class WebhooksController {
-  // ✅ Task 8: Sanitize and validate incoming message data
   private sanitizeInput(input: string): string {
     if (!input || typeof input !== "string") {
       throw new Error("Invalid input");
@@ -17,7 +16,6 @@ export class WebhooksController {
       .toUpperCase(); // Normalize to uppercase for command matching
   }
 
-  // ✅ Task 9: Parse and validate phone number from Twilio format
   private extractPhoneNumber(twilioPhone: string): string {
     if (!twilioPhone) {
       throw new Error("Phone number is required");
@@ -35,7 +33,6 @@ export class WebhooksController {
     return phoneNumber.startsWith("+") ? phoneNumber : "+" + phoneNumber;
   }
 
-  // ✅ Task 9: Parse user commands
   private parseCommand(message: string): { command: string; args: string[] } {
     const sanitized = this.sanitizeInput(message);
     const parts = sanitized.split(/\s+/).filter((part) => part.length > 0);
@@ -46,7 +43,6 @@ export class WebhooksController {
     };
   }
 
-  // ✅ Task 6: Handle incoming WhatsApp messages
   async handleWhatsAppWebhook(req: Request, res: Response): Promise<void> {
     try {
       console.log("WhatsApp webhook received:", req.body);
@@ -58,13 +54,11 @@ export class WebhooksController {
         return;
       }
 
-      // Extract phone number and parse command
       const phoneNumber = this.extractPhoneNumber(From);
       const { command, args } = this.parseCommand(Body);
 
       console.log(`WhatsApp command from ${phoneNumber}: ${command}`);
 
-      // Handle different commands
       let response: { success: boolean; message: string };
 
       switch (command) {
@@ -102,11 +96,10 @@ export class WebhooksController {
           };
       }
 
-      // Send response via TwiML
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>${response.message}</Message>
-</Response>`;
+      <Response>
+        <Message>${response.message}</Message>
+      </Response>`;
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(twiml);
@@ -114,16 +107,15 @@ export class WebhooksController {
       console.error("WhatsApp webhook error:", error);
 
       const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Sorry, there was an error processing your request. Please try again later.</Message>
-</Response>`;
+      <Response>
+        <Message>Sorry, there was an error processing your request. Please try again later.</Message>
+      </Response>`;
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(errorTwiml);
     }
   }
 
-  // ✅ Task 7: Handle incoming SMS messages
   async handleSMSWebhook(req: Request, res: Response): Promise<void> {
     try {
       console.log("SMS webhook received:", req.body);
@@ -135,13 +127,11 @@ export class WebhooksController {
         return;
       }
 
-      // Extract phone number and parse command
       const phoneNumber = this.extractPhoneNumber(From);
       const { command, args } = this.parseCommand(Body);
 
       console.log(`SMS command from ${phoneNumber}: ${command}`);
 
-      // Handle different commands
       let response: { success: boolean; message: string };
 
       switch (command) {
@@ -179,11 +169,10 @@ export class WebhooksController {
           };
       }
 
-      // Send response via TwiML
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>${response.message}</Message>
-</Response>`;
+      <Response>
+        <Message>${response.message}</Message>
+      </Response>`;
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(twiml);
@@ -191,16 +180,15 @@ export class WebhooksController {
       console.error("SMS webhook error:", error);
 
       const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Message>Sorry, there was an error. Please try again later.</Message>
-</Response>`;
+      <Response>
+        <Message>Sorry, there was an error. Please try again later.</Message>
+      </Response>`;
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(errorTwiml);
     }
   }
 
-  // Handle balance command
   private async handleBalanceCommand(
     phoneNumber: string
   ): Promise<{ success: boolean; message: string }> {
@@ -214,8 +202,6 @@ export class WebhooksController {
         };
       }
 
-      // TODO: Implement balance checking with Mantle RPC
-      // For now, return wallet address
       return {
         success: true,
         message: `Your wallet: ${wallet.address}\n\nBalance checking coming soon! Use a block explorer to check your balance.`,
@@ -229,7 +215,6 @@ export class WebhooksController {
     }
   }
 
-  // Handle address command
   private async handleAddressCommand(
     phoneNumber: string
   ): Promise<{ success: boolean; message: string }> {
@@ -256,7 +241,6 @@ export class WebhooksController {
     }
   }
 
-  // Handle QR code command
   private async handleQRCommand(
     phoneNumber: string,
     channel: "whatsapp" | "sms"
@@ -271,11 +255,7 @@ export class WebhooksController {
         };
       }
 
-      // Generate and send QR code for the wallet address
-      const qrResult = await walletService.sendWalletQR(
-        phoneNumber,
-        channel
-      );
+      const qrResult = await walletService.sendWalletQR(phoneNumber, channel);
 
       if (!qrResult.success) {
         return {
@@ -297,7 +277,6 @@ export class WebhooksController {
     }
   }
 
-  // Handle help command
   private handleHelpCommand(): { success: boolean; message: string } {
     const helpMessage =
       `🔹 Zest Wallet Commands:\n\n` +
@@ -315,7 +294,6 @@ export class WebhooksController {
     };
   }
 
-  // Health check endpoint
   async healthCheck(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       status: "healthy",

@@ -3,37 +3,34 @@ import { DatabaseService } from "../services/database.service";
 
 const dbService = new DatabaseService();
 
-// Initialize database connection
 dbService.connect().catch(console.error);
 
 export class WalletsController {
-  // Get all registered wallets
   async getAllWallets(req: Request, res: Response): Promise<void> {
     try {
       const wallets = await dbService.getAllWallets();
-      
+
       const response = {
         success: true,
         count: wallets.length,
-        data: wallets.map(wallet => ({
+        data: wallets.map((wallet) => ({
           phoneNumber: wallet.phone,
           walletAddress: wallet.address,
-          createdAt: wallet.createdAt
-        }))
+          createdAt: wallet.createdAt,
+        })),
       };
-      
+
       res.status(200).json(response);
     } catch (error) {
       console.error("Error fetching wallets:", error);
-      
+
       res.status(500).json({
         success: false,
         message: "Failed to fetch wallets",
-        error: process.env.NODE_ENV === "development" ? error : undefined
+        error: process.env.NODE_ENV === "development" ? error : undefined,
       });
     }
   }
 }
 
-// Export singleton instance
 export const walletsController = new WalletsController();

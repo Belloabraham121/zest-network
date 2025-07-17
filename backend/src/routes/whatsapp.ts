@@ -1,24 +1,17 @@
 import { Router } from "express";
 import { webhooksController } from "../controllers/webhooks.controller";
 
-// TODO: ✅ Task 11: Setup WhatsApp webhook routes
-
 const router = Router();
 
-// ✅ Task 11: WhatsApp webhook endpoint
-// This endpoint receives incoming WhatsApp messages from Twilio
 router.post("/webhook", async (req, res) => {
   await webhooksController.handleWhatsAppWebhook(req, res);
 });
 
-// Health check for WhatsApp service
 router.get("/health", async (req, res) => {
   await webhooksController.healthCheck(req, res);
 });
 
-// Webhook verification for Twilio (optional)
 router.get("/webhook", (req, res) => {
-  // Twilio webhook verification
   const challenge = req.query["hub.challenge"];
   if (challenge) {
     res.status(200).send(challenge);

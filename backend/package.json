@@ -5,7 +5,10 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
+    "dev:nodemon": "nodemon --exec \"npm run build && npm start\" --watch src --ext ts",
+    "dev:watch": "nodemon dist/index.js",
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "test": "jest"
   },
   "keywords": [],
@@ -13,16 +16,21 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/qrcode": "^1.5.5",
+    "bip39": "^3.1.0",
     "dotenv": "^17.2.0",
     "ethers": "^6.15.0",
     "express": "^5.1.0",
-    "mongoose": "^8.16.3"
+    "mongoose": "^8.16.3",
+    "qrcode": "^1.5.4",
+    "twilio": "^5.7.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.13",
     "jest": "^30.0.4",
+    "nodemon": "^3.1.10",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }

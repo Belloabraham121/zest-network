@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { webhooksController } from "../controllers/webhooks.controller";
 
-// TODO: ✅ Task 11: Setup WhatsApp webhook routes
+// TODO: ✅ Task 12: Setup SMS webhook routes
 
 const router = Router();
 
-// ✅ Task 11: WhatsApp webhook endpoint
-// This endpoint receives incoming WhatsApp messages from Twilio
+// ✅ Task 12: SMS webhook endpoint
+// This endpoint receives incoming SMS messages from Twilio
 router.post("/webhook", async (req, res) => {
-  await webhooksController.handleWhatsAppWebhook(req, res);
+  await webhooksController.handleSMSWebhook(req, res);
 });
 
-// Health check for WhatsApp service
+// Health check for SMS service
 router.get("/health", async (req, res) => {
   await webhooksController.healthCheck(req, res);
 });
@@ -23,7 +23,7 @@ router.get("/webhook", (req, res) => {
   if (challenge) {
     res.status(200).send(challenge);
   } else {
-    res.status(200).send("WhatsApp webhook endpoint is active");
+    res.status(200).send("SMS webhook endpoint is active");
   }
 });
 

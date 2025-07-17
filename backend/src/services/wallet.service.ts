@@ -135,20 +135,43 @@ export class WalletService {
         chainId: 5000,
       };
 
-      const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData), {
-        errorCorrectionLevel: "M",
-        margin: 1,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
-        width: 256,
-      });
+      const qrText = encodeURIComponent(JSON.stringify(qrData));
+      const qrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?data=${qrText}&size=300x300&format=png&margin=1&ecc=M&color=0-0-0&bgcolor=255-255-255&qzone=1`;
 
-      return qrCodeDataURL;
+      const response = await fetch(qrCodeURL, { method: "HEAD" });
+      if (!response.ok) {
+        throw new Error(`QR code service returned status: ${response.status}`);
+      }
+
+      console.log(`✅ QR code generated successfully: ${qrCodeURL}`);
+      return qrCodeURL;
     } catch (error) {
       console.error("Error generating QR code:", error);
-      throw new Error("Failed to generate QR code");
+
+      try {
+        const fallbackQrText = encodeURIComponent(walletAddress);
+        const fallbackQrCodeURL = `https://api.qrserver.com/v1/create-qr-code/?data=${fallbackQrText}&size=300x300&format=png&margin=1&ecc=M&color=0-0-0&bgcolor=255-255-255&qzone=1`;
+
+        const fallbackResponse = await fetch(fallbackQrCodeURL, {
+          method: "HEAD",
+        });
+        if (!fallbackResponse.ok) {
+          throw new Error(
+            `Fallback QR code service returned status: ${fallbackResponse.status}`
+          );
+        }
+
+        console.log(
+          `✅ Fallback QR code generated successfully: ${fallbackQrCodeURL}`
+        );
+        return fallbackQrCodeURL;
+      } catch (fallbackError) {
+        console.error(
+          "Fallback QR code generation also failed:",
+          fallbackError
+        );
+        throw new Error("Failed to generate QR code");
+      }
     }
   }
 
@@ -232,6 +255,65 @@ export class WalletService {
     }
   }
 
+  private async sendWhatsAppQR(
+    to: string,
+    walletAddress: string,
+    qrCodeDataURL: string
+  ): Promise<void> {
+    try {
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping WhatsApp QR");
+        return;
+      }
+
+      await this.twilioClient.messages.create({
+        from: env.TWILIO_WHATSAPP_NUMBER,
+        to: `whatsapp:${to}`,
+        body: `📱 QR Code for your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle (Chain ID: 5000)\n\nScan to share your wallet address!`,
+        mediaUrl: [qrCodeDataURL],
+      });
+
+      console.log(`WhatsApp QR code sent to ${to}`);
+    } catch (error) {
+      console.error("Error sending WhatsApp QR:", error);
+      throw new Error("Failed to send WhatsApp QR");
+    }
+  }
+
+  private async sendSMSQR(
+    to: string,
+    walletAddress: string,
+    qrCodeDataURL: string
+  ): Promise<void> {
+    try {
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping SMS QR");
+        return;
+      }
+
+      try {
+        await this.twilioClient.messages.create({
+          from: env.TWILIO_PHONE_NUMBER,
+          to: to,
+          body: `📱 QR Code for your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle\n\nScan to share your address!`,
+          mediaUrl: [qrCodeDataURL],
+        });
+      } catch (mmsError) {
+        await this.twilioClient.messages.create({
+          from: env.TWILIO_PHONE_NUMBER,
+          to: to,
+          body: `📱 Your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle\n\nQR code delivery failed. Use address above.`,
+        });
+        console.log("MMS not supported, sent text only");
+      }
+
+      console.log(`SMS QR code sent to ${to}`);
+    } catch (error) {
+      console.error("Error sending SMS QR:", error);
+      throw new Error("Failed to send SMS QR");
+    }
+  }
+
   private sanitizePhoneNumber(phone: string): string {
     // Remove all non-digit characters except +
     const cleaned = phone.replace(/[^+\d]/g, "");
@@ -307,7 +389,6 @@ export class WalletService {
           `Failed to send ${channel} message, but wallet was created successfully:`,
           messageError
         );
-        // Continue with success - wallet creation succeeded even if messaging failed
       }
 
       console.log(`✅ Wallet created successfully for ${sanitizedPhone}`);
@@ -327,7 +408,6 @@ export class WalletService {
     }
   }
 
-  // Get wallet by phone number
   async getWallet(phoneNumber: string): Promise<Wallet | null> {
     try {
       const sanitizedPhone = this.sanitizePhoneNumber(phoneNumber);
@@ -338,7 +418,104 @@ export class WalletService {
     }
   }
 
-  // Get decrypted private key (use with caution)
+  async generateWalletQR(
+    walletAddress: string
+  ): Promise<{ success: boolean; qrCodeDataURL?: string; message?: string }> {
+    try {
+      const qrCodeDataURL = await this.generateQRCode(walletAddress);
+      return {
+        success: true,
+        qrCodeDataURL: qrCodeDataURL,
+      };
+    } catch (error) {
+      console.error("Error generating wallet QR code:", error);
+      return {
+        success: false,
+        message: "Failed to generate QR code",
+      };
+    }
+  }
+
+  async sendWalletQR(
+    phoneNumber: string,
+    channel: "whatsapp" | "sms"
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const sanitizedPhone = this.sanitizePhoneNumber(phoneNumber);
+      const wallet = await this.dbService.getWallet(sanitizedPhone);
+
+      if (!wallet) {
+        return {
+          success: false,
+          message: "No wallet found for this phone number",
+        };
+      }
+
+      try {
+        const qrCodeDataURL = await this.generateQRCode(wallet.address);
+
+        if (channel === "whatsapp") {
+          await this.sendWhatsAppQR(
+            sanitizedPhone,
+            wallet.address,
+            qrCodeDataURL
+          );
+        } else {
+          await this.sendSMSQR(sanitizedPhone, wallet.address, qrCodeDataURL);
+        }
+
+        console.log(
+          `✅ QR code sent successfully to ${sanitizedPhone} via ${channel}`
+        );
+        return { success: true };
+      } catch (messageError) {
+        console.warn(
+          `Failed to send ${channel} QR code image, sending text fallback:`,
+          messageError
+        );
+
+        const fallbackMessage = `🔲 Your Wallet QR Code\n\nWallet Address:\n${wallet.address}\n\nTo generate a QR code:\n1. Visit any QR code generator\n2. Enter your wallet address\n3. Save the QR code for easy sharing\n\nNetwork: Mantle (Chain ID: 5000)`;
+
+        try {
+          if (!this.twilioClient) {
+            throw new Error("Twilio client not available");
+          }
+
+          if (channel === "whatsapp") {
+            await this.twilioClient.messages.create({
+              body: fallbackMessage,
+              from: `whatsapp:${env.TWILIO_WHATSAPP_NUMBER}`,
+              to: `whatsapp:${sanitizedPhone}`,
+            });
+          } else {
+            await this.twilioClient.messages.create({
+              body: fallbackMessage,
+              from: env.TWILIO_PHONE_NUMBER,
+              to: sanitizedPhone,
+            });
+          }
+
+          console.log(
+            `✅ QR code fallback message sent to ${sanitizedPhone} via ${channel}`
+          );
+          return { success: true };
+        } catch (fallbackError) {
+          console.error(`Failed to send fallback message:`, fallbackError);
+          return {
+            success: false,
+            message: "Failed to send QR code information",
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Error sending wallet QR code:", error);
+      return {
+        success: false,
+        message: "Failed to send QR code",
+      };
+    }
+  }
+
   async getDecryptedPrivateKey(phoneNumber: string): Promise<string | null> {
     try {
       const wallet = await this.getWallet(phoneNumber);
@@ -356,5 +533,4 @@ export class WalletService {
   }
 }
 
-// Export singleton instance
 export const walletService = new WalletService();

@@ -41,6 +41,11 @@ export class DatabaseService {
     return !!wallet;
   }
 
+  async deleteWallet(phone: string): Promise<boolean> {
+    const result = await WalletModel.deleteOne({ phone }).exec();
+    return result.deletedCount > 0;
+  }
+
   async getAllWallets(): Promise<
     { phone: string; address: string; createdAt: Date }[]
   > {

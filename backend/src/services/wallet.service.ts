@@ -5,10 +5,20 @@ import QRCode from "qrcode";
 import twilio from "twilio";
 import { env } from "../config/env";
 import { DatabaseService } from "./database.service";
-import { Wallet } from "../types";
+import { blockchainService } from "./blockchain.service";
+import { Wallet, Transaction } from "../types";
+import { 
+  addToken, 
+  toggleToken, 
+  getEnabledTokens, 
+  getTokenConfig, 
+  isTokenSupported, 
+  getSupportedTokenSymbols,
+  TokenConfig 
+} from "../config/tokens";
 
 export class WalletService {
-  private dbService: DatabaseService;
+  public dbService: DatabaseService;
   private twilioClient: twilio.Twilio | null;
   private provider: ethers.JsonRpcProvider;
 
@@ -76,7 +86,7 @@ export class WalletService {
   } {
     try {
       const algorithm = "aes-256-gcm";
-      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY, "hex");
+      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY.replace('0x', ''), "hex");
 
       if (secretKey.length !== 32) {
         throw new Error(
@@ -110,7 +120,7 @@ export class WalletService {
   ): string {
     try {
       const algorithm = "aes-256-gcm";
-      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY, "hex");
+      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY.replace('0x', ''), "hex");
       const ivBuffer = Buffer.from(iv, "hex");
 
       const decipher = crypto.createDecipheriv(algorithm, secretKey, ivBuffer);
@@ -132,7 +142,7 @@ export class WalletService {
       const qrData = {
         address: walletAddress,
         network: "Mantle",
-        chainId: 5000,
+        chainId: env.MANTLE_CHAIN_ID,
       };
 
       const qrText = encodeURIComponent(JSON.stringify(qrData));
@@ -189,7 +199,7 @@ export class WalletService {
       const message =
         `🎉 Wallet Created Successfully!\n\n` +
         `Your Mantle wallet address:\n${walletAddress}\n\n` +
-        `Network: Mantle (Chain ID: 5000)\n` +
+        `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n` +
         `You can now receive USDC and other tokens!\n\n` +
         `Save this address safely. Reply HELP for more commands.`;
 
@@ -269,7 +279,7 @@ export class WalletService {
       await this.twilioClient.messages.create({
         from: env.TWILIO_WHATSAPP_NUMBER,
         to: `whatsapp:${to}`,
-        body: `📱 QR Code for your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle (Chain ID: 5000)\n\nScan to share your wallet address!`,
+        body: `📱 QR Code for your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\nScan to share your wallet address!`,
         mediaUrl: [qrCodeDataURL],
       });
 
@@ -474,7 +484,7 @@ export class WalletService {
           messageError
         );
 
-        const fallbackMessage = `🔲 Your Wallet QR Code\n\nWallet Address:\n${wallet.address}\n\nTo generate a QR code:\n1. Visit any QR code generator\n2. Enter your wallet address\n3. Save the QR code for easy sharing\n\nNetwork: Mantle (Chain ID: 5000)`;
+        const fallbackMessage = `🔲 Your Wallet QR Code\n\nWallet Address:\n${wallet.address}\n\nTo generate a QR code:\n1. Visit any QR code generator\n2. Enter your wallet address\n3. Save the QR code for easy sharing\n\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})`;
 
         try {
           if (!this.twilioClient) {
@@ -529,6 +539,454 @@ export class WalletService {
     } catch (error) {
       console.error("Error decrypting private key:", error);
       return null;
+    }
+  }
+
+  /**
+   * Get wallet balances (MNT + USDC)
+   */
+  async getWalletBalances(
+    phoneNumber: string
+  ): Promise<{
+    success: boolean;
+    balances?: Record<string, string> & { address: string };
+    message?: string;
+  }> {
+    try {
+      const sanitizedPhone = this.sanitizePhoneNumber(phoneNumber);
+      const wallet = await this.dbService.getWallet(sanitizedPhone);
+
+      if (!wallet) {
+        return {
+          success: false,
+          message: "No wallet found for this phone number. Reply CREATE to create a wallet."
+        };
+      }
+
+      const balances = await blockchainService.getWalletBalances(wallet.address);
+      
+      return {
+        success: true,
+        balances
+      };
+    } catch (error) {
+      console.error("Error getting wallet balances:", error);
+      return {
+        success: false,
+        message: "Failed to get wallet balances. Please try again later."
+      };
+    }
+  }
+
+  /**
+   * Transfer MNT tokens
+   */
+  async transferMNT(
+    senderPhone: string,
+    recipientAddress: string,
+    amount: string,
+    recipientPhone?: string
+  ): Promise<{
+    success: boolean;
+    txHash?: string;
+    message: string;
+    transaction?: Transaction;
+  }> {
+    try {
+      const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
+      
+      // Get sender's wallet
+      const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
+      if (!senderWallet) {
+        return {
+          success: false,
+          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+        };
+      }
+
+      // Decrypt sender's private key
+      const privateKey = this.decryptPrivateKey(
+        senderWallet.encryptedPrivateKey,
+        senderWallet.iv,
+        senderWallet.authTag
+      );
+
+      // Validate recipient address
+      if (!blockchainService.isValidAddress(recipientAddress)) {
+        return {
+          success: false,
+          message: "Invalid recipient address. Please check and try again."
+        };
+      }
+
+      // Validate amount
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return {
+          success: false,
+          message: "Invalid amount. Please enter a positive number."
+        };
+      }
+
+      // Execute transfer
+      const result = await blockchainService.transferMNT(
+        privateKey,
+        recipientAddress,
+        amount,
+        sanitizedSenderPhone,
+        recipientPhone
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Error transferring MNT:", error);
+      return {
+        success: false,
+        message: "Failed to transfer MNT. Please try again later."
+      };
+    }
+  }
+
+  /**
+   * Transfer USDC tokens
+   */
+  async transferUSDC(
+    senderPhone: string,
+    recipientAddress: string,
+    amount: string,
+    recipientPhone?: string
+  ): Promise<{
+    success: boolean;
+    txHash?: string;
+    message: string;
+    transaction?: Transaction;
+  }> {
+    try {
+      const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
+      
+      // Get sender's wallet
+      const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
+      if (!senderWallet) {
+        return {
+          success: false,
+          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+        };
+      }
+
+      // Decrypt sender's private key
+      const privateKey = this.decryptPrivateKey(
+        senderWallet.encryptedPrivateKey,
+        senderWallet.iv,
+        senderWallet.authTag
+      );
+
+      // Validate recipient address
+      if (!blockchainService.isValidAddress(recipientAddress)) {
+        return {
+          success: false,
+          message: "Invalid recipient address. Please check and try again."
+        };
+      }
+
+      // Validate amount
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return {
+          success: false,
+          message: "Invalid amount. Please enter a positive number."
+        };
+      }
+
+      // Execute transfer
+      const result = await blockchainService.transferToken(
+        env.USDC_ADDRESS,
+        privateKey,
+        recipientAddress,
+        amount,
+        sanitizedSenderPhone,
+        recipientPhone
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Error transferring USDC:", error);
+      return {
+        success: false,
+        message: "Failed to transfer USDC. Please try again later."
+      };
+    }
+  }
+
+  /**
+   * Transfer any supported token using the new token system
+   */
+  async transferSupportedToken(
+    senderPhone: string,
+    recipientAddress: string,
+    amount: string,
+    tokenSymbol: string,
+    recipientPhone?: string
+  ): Promise<{
+    success: boolean;
+    txHash?: string;
+    message: string;
+    transaction?: Transaction;
+  }> {
+    try {
+      const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
+      
+      // Get sender's wallet
+      const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
+      if (!senderWallet) {
+        return {
+          success: false,
+          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+        };
+      }
+
+      // Decrypt sender's private key
+      const privateKey = this.decryptPrivateKey(
+        senderWallet.encryptedPrivateKey,
+        senderWallet.iv,
+        senderWallet.authTag
+      );
+
+      // Validate recipient address
+      if (!blockchainService.isValidAddress(recipientAddress)) {
+        return {
+          success: false,
+          message: "Invalid recipient address. Please check and try again."
+        };
+      }
+
+      // Validate amount
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum <= 0) {
+        return {
+          success: false,
+          message: "Invalid amount. Please enter a positive number."
+        };
+      }
+
+      // Use the new blockchain service method
+      const result = await blockchainService.transferSupportedToken(
+        tokenSymbol,
+        privateKey,
+        recipientAddress,
+        amount,
+        sanitizedSenderPhone,
+        recipientPhone
+      );
+
+      return result;
+    } catch (error) {
+      console.error(`Error transferring ${tokenSymbol}:`, error);
+      return {
+        success: false,
+        message: `Failed to transfer ${tokenSymbol}. Please try again later.`
+      };
+    }
+  }
+
+  /**
+   * Transfer tokens to another phone number (resolve address first)
+   */
+  async transferToPhone(
+    senderPhone: string,
+    recipientPhone: string,
+    amount: string,
+    tokenSymbol: string
+  ): Promise<{
+    success: boolean;
+    txHash?: string;
+    message: string;
+    transaction?: Transaction;
+  }> {
+    try {
+      const sanitizedRecipientPhone = this.sanitizePhoneNumber(recipientPhone);
+      
+      // Get recipient's wallet
+      const recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+      if (!recipientWallet) {
+        return {
+          success: false,
+          message: `Recipient ${recipientPhone} doesn't have a wallet. They need to create one first.`
+        };
+      }
+
+      // Transfer to recipient's address using the new method
+      return await this.transferSupportedToken(
+        senderPhone,
+        recipientWallet.address,
+        amount,
+        tokenSymbol,
+        sanitizedRecipientPhone
+      );
+    } catch (error) {
+      console.error("Error transferring to phone:", error);
+      return {
+        success: false,
+        message: "Failed to transfer tokens. Please try again later."
+      };
+    }
+  }
+
+  /**
+   * Add a new token to the system
+   */
+  async addNewToken(
+    symbol: string,
+    name: string,
+    address: string,
+    decimals: number = 18,
+    enabled: boolean = true
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      // Validate the token address
+      if (!blockchainService.isValidAddress(address)) {
+        return {
+          success: false,
+          message: "Invalid token contract address"
+        };
+      }
+
+      // Add the token
+      addToken(symbol, name, address, decimals, enabled);
+      
+      return {
+        success: true,
+        message: `Token ${symbol.toUpperCase()} (${name}) added successfully`
+      };
+    } catch (error) {
+      console.error("Error adding token:", error);
+      return {
+        success: false,
+        message: "Failed to add token"
+      };
+    }
+  }
+
+  /**
+   * Enable or disable a token
+   */
+  async toggleTokenStatus(
+    symbol: string,
+    enabled: boolean
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      toggleToken(symbol, enabled);
+      
+      return {
+        success: true,
+        message: `Token ${symbol.toUpperCase()} ${enabled ? 'enabled' : 'disabled'} successfully`
+      };
+    } catch (error) {
+      console.error("Error toggling token:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to toggle token"
+      };
+    }
+  }
+
+  /**
+   * Get list of supported tokens
+   */
+  getSupportedTokens(): { success: boolean; tokens: Record<string, TokenConfig> } {
+    try {
+      const tokens = getEnabledTokens();
+      return {
+        success: true,
+        tokens
+      };
+    } catch (error) {
+      console.error("Error getting supported tokens:", error);
+      return {
+        success: false,
+        tokens: {}
+      };
+    }
+  }
+
+  /**
+   * Send balance information via SMS/WhatsApp
+   */
+  async sendBalanceMessage(
+    phoneNumber: string,
+    channel: "whatsapp" | "sms"
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const balanceResult = await this.getWalletBalances(phoneNumber);
+      
+      if (!balanceResult.success || !balanceResult.balances) {
+        return {
+          success: false,
+          message: balanceResult.message
+        };
+      }
+
+      const balances = balanceResult.balances;
+      const sanitizedPhone = this.sanitizePhoneNumber(phoneNumber);
+
+      // Build dynamic balance message
+      let balanceLines = "";
+      const supportedTokens = getSupportedTokenSymbols();
+      
+      for (const symbol of supportedTokens) {
+        const tokenConfig = getTokenConfig(symbol);
+        if (!tokenConfig) continue;
+        
+        const balance = (balances as any)[symbol.toLowerCase()] || "0";
+        const formattedBalance = parseFloat(balance).toFixed(tokenConfig.decimals === 6 ? 2 : 4);
+        
+        // Add appropriate emoji for each token
+        const emoji = symbol === "MNT" ? "💎" : symbol === "USDC" ? "💵" : "🪙";
+        balanceLines += `${emoji} ${symbol}: ${formattedBalance} ${symbol}\n`;
+      }
+
+      const message = 
+        `💰 Your Wallet Balance\n\n` +
+        `Address: ${balances.address}\n\n` +
+        balanceLines +
+        `\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\n` +
+        `Supported tokens: ${supportedTokens.join(", ")}\n\n` +
+        `Reply SEND to transfer tokens.`;
+
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping balance message");
+        return { success: true };
+      }
+
+      try {
+        if (channel === "whatsapp") {
+          await this.twilioClient.messages.create({
+            from: env.TWILIO_WHATSAPP_NUMBER,
+            to: `whatsapp:${sanitizedPhone}`,
+            body: message
+          });
+        } else {
+          await this.twilioClient.messages.create({
+            from: env.TWILIO_PHONE_NUMBER,
+            to: sanitizedPhone,
+            body: message
+          });
+        }
+
+        console.log(`✅ Balance message sent to ${sanitizedPhone} via ${channel}`);
+        return { success: true };
+      } catch (messageError) {
+        console.error(`Failed to send balance message:`, messageError);
+        return {
+          success: false,
+          message: "Failed to send balance information"
+        };
+      }
+    } catch (error) {
+      console.error("Error sending balance message:", error);
+      return {
+        success: false,
+        message: "Failed to get balance information"
+      };
     }
   }
 }

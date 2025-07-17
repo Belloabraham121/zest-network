@@ -5,6 +5,9 @@ import whatsappRoutes from "./routes/whatsapp";
 import smsRoutes from "./routes/sms";
 import ussdRoutes from "./routes/ussd";
 import walletsRoutes from "./routes/wallets";
+import apiRoutes from "./routes/api.routes";
+import tokensRoutes from "./routes/tokens.routes";
+import rateLimiterRoutes from "./routes/rate-limiter.routes";
 
 const app = express();
 
@@ -33,6 +36,9 @@ app.use("/webhooks/sms", smsRoutes);
 app.use("/webhooks/ussd", ussdRoutes);
 
 app.use("/api/wallets", walletsRoutes);
+app.use("/api/tokens", tokensRoutes);
+app.use("/api/rate-limiter", rateLimiterRoutes);
+app.use("/api", apiRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -44,6 +50,11 @@ app.get("/health", (req, res) => {
       sms: "/webhooks/sms/webhook",
       ussd: "/webhooks/ussd/webhook",
       wallets: "/api/wallets",
+      tokens: "/api/tokens",
+      transfers: "/api/transfer",
+      directMNT: "/api/transfer/mnt/direct",
+      balance: "/api/wallet/balance",
+      relayer: "/api/relayer/status",
     },
   });
 });
@@ -54,7 +65,14 @@ app.get("/", (req, res) => {
     message: "🎉 Zest Wallet Backend API",
     version: "1.0.0",
     description:
-      "Custodial wallet service for Nigeria and Kenya via WhatsApp/SMS",
+      "Custodial wallet service with MNT token transfers via WhatsApp/SMS",
+    features: [
+      "🔐 Secure custodial wallets",
+      "💎 MNT & USDC token transfers",
+      "⛽ Gasless transactions (relayer pays fees)",
+      "📱 WhatsApp & SMS integration",
+      "🔗 Mantle blockchain support"
+    ],
     nodemon: "✅ Auto-restart enabled with nodemon",
     endpoints: {
       health: "/health",
@@ -62,6 +80,11 @@ app.get("/", (req, res) => {
       sms: "/webhooks/sms/webhook",
       ussd: "/webhooks/ussd/webhook",
       wallets: "/api/wallets",
+      tokens: "/api/tokens",
+      transfers: "/api/transfer",
+      directMNT: "/api/transfer/mnt/direct",
+      balance: "/api/wallet/balance",
+      relayer: "/api/relayer/status",
     },
   });
 });
@@ -77,6 +100,12 @@ app.listen(PORT, () => {
     `📞 USSD webhook: http://localhost:${PORT}/webhooks/ussd/webhook`
   );
   console.log(`💼 Wallets API: http://localhost:${PORT}/api/wallets`);
+  console.log(`🪙 Tokens API: http://localhost:${PORT}/api/tokens`);
+  console.log(`💎 Transfer API: http://localhost:${PORT}/api/transfer`);
+  console.log(`🚀 Direct MNT Transfer: http://localhost:${PORT}/api/transfer/mnt/direct`);
+  console.log(`💰 Balance API: http://localhost:${PORT}/api/wallet/balance`);
+  console.log(`⛽ Relayer Status: http://localhost:${PORT}/api/relayer/status`);
+  console.log(`📊 Rate Limiter API: http://localhost:${PORT}/api/rate-limiter`);
   console.log(`❤️ Health check: http://localhost:${PORT}/health`);
 });
 

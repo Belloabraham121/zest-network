@@ -4,7 +4,7 @@ import { webhooksController } from "../controllers/webhooks.controller";
 const router = Router();
 
 router.post("/webhook", async (req, res) => {
-  await webhooksController.handleWhatsAppWebhook(req, res);
+  await webhooksController.handleSMSWebhook(req, res);
 });
 
 router.get("/health", async (req, res) => {
@@ -16,7 +16,7 @@ router.get("/webhook", (req, res) => {
   if (challenge) {
     res.status(200).send(challenge);
   } else {
-    res.status(200).send("WhatsApp webhook endpoint is active");
+    res.status(200).send("SMS webhook endpoint is active");
   }
 });
 

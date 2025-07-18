@@ -14,3 +14,5 @@ package-lock.json
 test-mnt-transfer.sh
 test-balance.sh
 test-send-command.sh
+test-enhanced-transfer.sh
+test-sms-fallback.sh

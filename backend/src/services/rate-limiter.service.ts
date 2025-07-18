@@ -9,7 +9,7 @@ interface RateLimitData {
 
 export class RateLimiterService {
   private readonly COLLECTION_NAME = "rate_limits";
-  private readonly DEFAULT_DAILY_LIMIT = 15; // Conservative limit below Twilio's 9
+  private readonly DEFAULT_DAILY_LIMIT = 20; // Increased limit for better user experience
   private readonly RESET_HOUR = 0; // Reset at midnight UTC
 
   constructor() {
@@ -252,7 +252,7 @@ export class RateLimiterService {
     return nowDate > lastResetDate;
   }
 
-  private async resetCounter(phoneNumber: string): Promise<void> {
+  async resetCounter(phoneNumber: string): Promise<void> {
     try {
       const collection = mongoose.connection.db?.collection(
         this.COLLECTION_NAME
@@ -268,6 +268,7 @@ export class RateLimiterService {
           $set: {
             messageCount: 0,
             lastReset: new Date(),
+            dailyLimit: this.DEFAULT_DAILY_LIMIT, // Update to current default limit
           },
         },
         { upsert: true }

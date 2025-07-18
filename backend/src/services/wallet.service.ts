@@ -379,24 +379,17 @@ export class WalletService {
       // Generate QR code
       const qrCodeDataURL = await this.generateQRCode(wallet.address);
 
-      // Send confirmation based on channel (non-blocking for testing)
+      // Send confirmation with automatic fallback (non-blocking for testing)
       try {
-        if (channel === "whatsapp") {
-          await this.sendWhatsAppMessage(
-            sanitizedPhone,
-            wallet.address,
-            qrCodeDataURL
-          );
-        } else {
-          await this.sendSMSMessage(
-            sanitizedPhone,
-            wallet.address,
-            qrCodeDataURL
-          );
-        }
+        await this.sendWalletCreationNotification(
+          sanitizedPhone,
+          wallet.address,
+          qrCodeDataURL,
+          channel
+        );
       } catch (messageError) {
         console.warn(
-          `Failed to send ${channel} message, but wallet was created successfully:`,
+          `Failed to send wallet creation notification, but wallet was created successfully:`,
           messageError
         );
       }
@@ -789,7 +782,7 @@ export class WalletService {
   }
 
   /**
-   * Transfer tokens to another phone number (resolve address first)
+   * Transfer tokens to another phone number with automatic wallet creation and notifications
    */
   async transferToPhone(
     senderPhone: string,
@@ -804,24 +797,57 @@ export class WalletService {
   }> {
     try {
       const sanitizedRecipientPhone = this.sanitizePhoneNumber(recipientPhone);
-      
-      // Get recipient's wallet
-      const recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+      let recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+      let walletCreated = false;
+
+      // If recipient doesn't have a wallet, create one automatically
       if (!recipientWallet) {
-        return {
-          success: false,
-          message: `Recipient ${recipientPhone} doesn't have a wallet. They need to create one first.`
-        };
+        console.log(`📱 Creating new wallet for recipient ${recipientPhone}`);
+        
+        const walletCreationResult = await this.createWallet(sanitizedRecipientPhone, "whatsapp");
+        if (!walletCreationResult.success) {
+          return {
+            success: false,
+            message: `Failed to create wallet for recipient ${recipientPhone}. Please try again later.`
+          };
+        }
+
+        // Get the newly created wallet
+        recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+        if (!recipientWallet) {
+          return {
+            success: false,
+            message: "Failed to retrieve newly created wallet. Please try again later."
+          };
+        }
+        
+        walletCreated = true;
+        console.log(`✅ New wallet created for ${recipientPhone}: ${recipientWallet.address}`);
       }
 
-      // Transfer to recipient's address using the new method
-      return await this.transferSupportedToken(
+      // Perform the transfer
+      const transferResult = await this.transferSupportedToken(
         senderPhone,
         recipientWallet.address,
         amount,
         tokenSymbol,
         sanitizedRecipientPhone
       );
+
+      // Send notifications if transfer was successful
+      if (transferResult.success && transferResult.txHash) {
+        await this.sendTransferNotifications(
+          senderPhone,
+          sanitizedRecipientPhone,
+          amount,
+          tokenSymbol,
+          transferResult.txHash,
+          recipientWallet.address,
+          walletCreated
+        );
+      }
+
+      return transferResult;
     } catch (error) {
       console.error("Error transferring to phone:", error);
       return {
@@ -909,7 +935,153 @@ export class WalletService {
   }
 
   /**
-   * Send balance information via SMS/WhatsApp
+   * Send transfer notifications to both sender and recipient with SMS fallback
+   */
+  async sendTransferNotifications(
+    senderPhone: string,
+    recipientPhone: string,
+    amount: string,
+    tokenSymbol: string,
+    txHash: string,
+    recipientAddress: string,
+    walletCreated: boolean
+  ): Promise<void> {
+    try {
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping transfer notifications");
+        return;
+      }
+
+      const tokenEmoji = tokenSymbol === "MNT" ? "💎" : tokenSymbol === "USDC" ? "💵" : "🪙";
+      const explorerUrl = `https://sepolia.mantlescan.xyz/tx/${txHash}`;
+
+      // Send notification to recipient
+      const recipientMessage = walletCreated
+        ? `🎉 Welcome to Zest Wallet!\n\n` +
+          `You've received ${amount} ${tokenSymbol} ${tokenEmoji}\n\n` +
+          `📱 Your new wallet address:\n${recipientAddress}\n\n` +
+          `🔗 Transaction: ${explorerUrl}\n\n` +
+          `Reply BALANCE to check your wallet balance.\n` +
+          `Reply HELP for more commands.`
+        : `💰 You've received ${amount} ${tokenSymbol} ${tokenEmoji}\n\n` +
+          `📱 Wallet: ${recipientAddress}\n\n` +
+          `🔗 Transaction: ${explorerUrl}\n\n` +
+          `Reply BALANCE to check your updated balance.`;
+
+      // Send notification to sender
+      const senderMessage = walletCreated
+        ? `✅ Transfer completed!\n\n` +
+          `Sent: ${amount} ${tokenSymbol} ${tokenEmoji}\n` +
+          `To: ${recipientPhone}\n\n` +
+          `📱 A new wallet was created for the recipient:\n${recipientAddress}\n\n` +
+          `🔗 Transaction: ${explorerUrl}`
+        : `✅ Transfer completed!\n\n` +
+          `Sent: ${amount} ${tokenSymbol} ${tokenEmoji}\n` +
+          `To: ${recipientPhone}\n\n` +
+          `🔗 Transaction: ${explorerUrl}`;
+
+      // Send notifications with WhatsApp first, SMS fallback
+      await Promise.all([
+        this.sendNotificationWithFallback(recipientPhone, recipientMessage),
+        this.sendNotificationWithFallback(senderPhone, senderMessage)
+      ]);
+
+      console.log(`✅ Transfer notifications sent to ${senderPhone} and ${recipientPhone}`);
+    } catch (error) {
+      console.error("Error in sendTransferNotifications:", error);
+      // Don't throw error as the transfer itself was successful
+    }
+  }
+
+  /**
+   * Send wallet creation notification with automatic fallback
+   */
+  private async sendWalletCreationNotification(
+    phoneNumber: string,
+    walletAddress: string,
+    qrCodeDataURL: string,
+    preferredChannel: string = "whatsapp"
+  ): Promise<void> {
+    try {
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping wallet creation notification");
+        return;
+      }
+
+      // Try preferred channel first (WhatsApp by default)
+      if (preferredChannel === "whatsapp") {
+        try {
+          await this.sendWhatsAppMessage(phoneNumber, walletAddress, qrCodeDataURL);
+          console.log(`📱 WhatsApp wallet notification sent to ${phoneNumber}`);
+          return;
+        } catch (whatsappError: any) {
+          console.log(`WhatsApp failed for ${phoneNumber}, trying SMS fallback:`, whatsappError.message);
+          
+          // Fallback to SMS
+          try {
+            await this.sendSMSMessage(phoneNumber, walletAddress, qrCodeDataURL);
+            console.log(`📧 SMS wallet notification sent to ${phoneNumber}`);
+          } catch (smsError: any) {
+            console.error(`Both WhatsApp and SMS failed for ${phoneNumber}:`, smsError.message);
+            throw smsError;
+          }
+        }
+      } else {
+        // SMS was specifically requested
+        await this.sendSMSMessage(phoneNumber, walletAddress, qrCodeDataURL);
+        console.log(`📧 SMS wallet notification sent to ${phoneNumber}`);
+      }
+    } catch (error) {
+      console.error(`Error sending wallet creation notification to ${phoneNumber}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send notification with WhatsApp first, SMS fallback
+   */
+  private async sendNotificationWithFallback(
+    phoneNumber: string,
+    message: string
+  ): Promise<void> {
+    try {
+      if (!this.twilioClient) {
+        console.warn("Twilio client not available, skipping notification");
+        return;
+      }
+
+      // Try WhatsApp first
+      try {
+        await this.twilioClient.messages.create({
+          from: env.TWILIO_WHATSAPP_NUMBER,
+          to: `whatsapp:${phoneNumber}`,
+          body: message
+        });
+        console.log(`📱 WhatsApp notification sent to ${phoneNumber}`);
+      } catch (whatsappError: any) {
+        console.log(`WhatsApp failed for ${phoneNumber}, trying SMS fallback:`, whatsappError.message);
+        
+        // Fallback to SMS
+        try {
+          await this.twilioClient.messages.create({
+            from: env.TWILIO_PHONE_NUMBER,
+            to: phoneNumber,
+            body: message
+          });
+          console.log(`📧 SMS notification sent to ${phoneNumber}`);
+        } catch (smsError: any) {
+          console.error(`Both WhatsApp and SMS failed for ${phoneNumber}:`, smsError.message);
+          // Don't throw error as the transfer itself was successful
+        }
+      }
+    } catch (error) {
+      console.error(`Error sending notification to ${phoneNumber}:`, error);
+      // Don't throw error as the transfer itself was successful
+    }
+  }
+
+  /**
+   * Send balance information via SMS/WhatsApp with automatic fallback
    */
   async sendBalanceMessage(
     phoneNumber: string,
@@ -959,20 +1131,35 @@ export class WalletService {
 
       try {
         if (channel === "whatsapp") {
-          await this.twilioClient.messages.create({
-            from: env.TWILIO_WHATSAPP_NUMBER,
-            to: `whatsapp:${sanitizedPhone}`,
-            body: message
-          });
+          // Try WhatsApp first, fallback to SMS
+          try {
+            await this.twilioClient.messages.create({
+              from: env.TWILIO_WHATSAPP_NUMBER,
+              to: `whatsapp:${sanitizedPhone}`,
+              body: message
+            });
+            console.log(`✅ Balance message sent to ${sanitizedPhone} via WhatsApp`);
+          } catch (whatsappError: any) {
+            console.log(`WhatsApp failed for ${sanitizedPhone}, trying SMS fallback:`, whatsappError.message);
+            
+            // Fallback to SMS
+            await this.twilioClient.messages.create({
+              from: env.TWILIO_PHONE_NUMBER,
+              to: sanitizedPhone,
+              body: message
+            });
+            console.log(`✅ Balance message sent to ${sanitizedPhone} via SMS (fallback)`);
+          }
         } else {
+          // SMS was specifically requested
           await this.twilioClient.messages.create({
             from: env.TWILIO_PHONE_NUMBER,
             to: sanitizedPhone,
             body: message
           });
+          console.log(`✅ Balance message sent to ${sanitizedPhone} via SMS`);
         }
 
-        console.log(`✅ Balance message sent to ${sanitizedPhone} via ${channel}`);
         return { success: true };
       } catch (messageError) {
         console.error(`Failed to send balance message:`, messageError);

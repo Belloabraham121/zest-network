@@ -11,3 +11,6 @@ dist/
 /var/folders/
 .DS_Store
 package-lock.json
+test-mnt-transfer.sh
+test-balance.sh
+test-send-command.sh

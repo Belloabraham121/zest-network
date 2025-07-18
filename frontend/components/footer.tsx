@@ -27,7 +27,10 @@ export function Footer() {
               <button
                 className="flex items-center text-slate-600 hover:text-slate-800 transition-colors duration-200 text-sm group"
                 onClick={() =>
-                  window.open("https://wa.me/1234567890?text=START", "_blank")
+                  window.open(
+                    "https://wa.me/+1415523-8886?text=START",
+                    "_blank"
+                  )
                 }>
                 <MessageCircle className="w-4 h-4 mr-2 group-hover:text-teal-600 transition-colors duration-200" />
                 WhatsApp

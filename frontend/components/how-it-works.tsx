@@ -2,10 +2,20 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone, Send, TrendingUp, Eye } from "lucide-react";
+import {
+  Send,
+  TrendingUp,
+  MessageSquare,
+  ArrowRightLeft,
+  Globe,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 
 export function HowItWorks() {
-  const [activeTab, setActiveTab] = useState<"whatsapp" | "ussd">("whatsapp");
+  const [activeTab, setActiveTab] = useState<"whatsapp" | "ussd" | "sms">(
+    "whatsapp"
+  );
   const [isVisible, setIsVisible] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
@@ -89,18 +99,22 @@ export function HowItWorks() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <div className="bg-white rounded-lg p-1 shadow-sm border border-slate-200 relative overflow-hidden">
+            <div className="bg-white rounded-lg p-1 shadow-sm border border-slate-200 relative overflow-hidden flex">
               {/* Sliding background */}
               <div
-                className={`absolute top-1 bottom-1 bg-slate-800 rounded-md transition-all duration-300 ease-out ${
+                className={`absolute top-1 bottom-1 left-0 w-1/3 bg-slate-800 rounded-md transition-all duration-500 ease-in-out transform ${
                   activeTab === "whatsapp"
-                    ? "left-1 right-1/2"
-                    : "left-1/2 right-1"
-                }`}></div>
+                    ? "translate-x-0"
+                    : activeTab === "ussd"
+                    ? "translate-x-full"
+                    : "translate-x-[200%]"
+                }`}
+              />
 
+              {/* WhatsApp Button */}
               <Button
                 variant="ghost"
-                className={`w-36 text-sm transition-all duration-200 relative z-10 ${
+                className={`w-40 text-sm transition-all duration-200 relative z-10 ${
                   activeTab === "whatsapp"
                     ? "text-white"
                     : "text-slate-600 hover:text-slate-800"
@@ -109,9 +123,11 @@ export function HowItWorks() {
                 <MessageCircle className="w-4 h-4 mr-2 animate-bounce-on-hover" />
                 WhatsApp
               </Button>
+
+              {/* USSD Button */}
               <Button
                 variant="ghost"
-                className={`w-36 text-sm transition-all duration-200 relative z-10 ${
+                className={`w-40 text-sm transition-all duration-200 relative z-10 ${
                   activeTab === "ussd"
                     ? "text-white"
                     : "text-slate-600 hover:text-slate-800"
@@ -119,6 +135,19 @@ export function HowItWorks() {
                 onClick={() => setActiveTab("ussd")}>
                 <Phone className="w-4 h-4 mr-2 animate-bounce-on-hover" />
                 USSD
+              </Button>
+
+              {/* SMS Button */}
+              <Button
+                variant="ghost"
+                className={`w-40 text-sm transition-all duration-200 relative z-10 ${
+                  activeTab === "sms"
+                    ? "text-white"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+                onClick={() => setActiveTab("sms")}>
+                <MessageSquare className="w-4 h-4 mr-2" />
+                SMS
               </Button>
             </div>
           </div>
@@ -156,7 +185,7 @@ export function HowItWorks() {
                           className="bg-teal-600 hover:bg-teal-700 text-white text-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-glow"
                           onClick={() =>
                             window.open(
-                              "https://wa.me/1234567890?text=START",
+                              "https://wa.me/+1415523-8886?text=HELP",
                               "_blank"
                             )
                           }>
@@ -176,6 +205,24 @@ export function HowItWorks() {
                         <p className="text-slate-700 mb-3">Dial on any phone</p>
                         <p className="font-mono text-2xl text-slate-800 hover:text-teal-700 transition-colors duration-200 animate-pulse-number">
                           *777#
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={`transition-all duration-500 ${
+                      activeTab === "sms" ? "opacity-100" : "opacity-0 absolute"
+                    }`}>
+                    {activeTab === "sms" && (
+                      <div>
+                        <p className="text-slate-700 mb-3">
+                          Text &quot;START&quot; to our SMS number
+                        </p>
+                        <p className="font-mono text-xl text-slate-800 hover:text-teal-700 transition-colors duration-200">
+                          +1 (415) 523-8886
+                        </p>
+                        <p className="text-sm text-slate-500 mt-1">
+                          Works on any phone, no internet needed
                         </p>
                       </div>
                     )}
@@ -231,20 +278,31 @@ export function HowItWorks() {
                       title: "Send",
                       whatsapp: "Send 10 USDC to +234...",
                       ussd: "Dial *777*1*10*234...#",
+                      sms: "Text: Send 10 USDC to +234...",
                       color: "text-blue-600",
+                    },
+                    {
+                      icon: ArrowRightLeft,
+                      title: "Swap",
+                      whatsapp: "Swap ETH to SOL",
+                      ussd: "Dial *777*4*ETH*SOL#",
+                      sms: "Text: Swap ETH to SOL",
+                      color: "text-purple-600",
                     },
                     {
                       icon: TrendingUp,
                       title: "Stake",
                       whatsapp: "Stake 20 USDC",
                       ussd: "Dial *777*2*20#",
+                      sms: "Text: Stake 20 USDC",
                       color: "text-emerald-600",
                     },
                     {
-                      icon: Eye,
-                      title: "Check",
-                      whatsapp: "Balance",
-                      ussd: "Dial *777*3#",
+                      icon: Globe,
+                      title: "Bridge",
+                      whatsapp: "Bridge USDC to Arbitrum",
+                      ussd: "Dial *777*5*USDC*ARB#",
+                      sms: "Text: Bridge to Arbitrum",
                       color: "text-amber-600",
                     },
                   ].map((action, index) => (
@@ -262,7 +320,9 @@ export function HowItWorks() {
                         <p className="text-sm text-slate-600 mb-3 group-hover:text-slate-700 transition-colors duration-200">
                           {activeTab === "whatsapp"
                             ? action.whatsapp
-                            : action.ussd}
+                            : activeTab === "ussd"
+                            ? action.ussd
+                            : action.sms}
                         </p>
                       </div>
                     </div>

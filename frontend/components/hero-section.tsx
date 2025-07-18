@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone } from "lucide-react";
+import { MessageCircle, Phone, MessageSquare } from "lucide-react";
 
 export function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -32,9 +32,11 @@ export function HeroSection() {
       setShowCursor((prev) => !prev);
     }, 500);
 
-    // Chat messages animation
+    // Chat messages animation with AI responses
     setTimeout(() => setChatMessages([1]), 2000);
     setTimeout(() => setChatMessages([1, 2]), 3500);
+    setTimeout(() => setChatMessages([1, 2, 3]), 5000);
+    setTimeout(() => setChatMessages([1, 2, 3, 4]), 6500);
 
     return () => {
       clearInterval(typeInterval);
@@ -61,7 +63,7 @@ export function HeroSection() {
               <span
                 className="font-medium text-teal-700 animate-fade-in-up"
                 style={{ animationDelay: "3s", animationFillMode: "both" }}>
-                No apps needed.
+                AI-powered crypto on WhatsApp.
               </span>
             </h1>
           </div>
@@ -73,8 +75,9 @@ export function HeroSection() {
                 : "opacity-0 translate-y-8"
             }`}>
             <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Send, stake, and manage crypto using WhatsApp or any phone. No
-              wallet apps, no seed phrases, no complexity.
+              Send, stake, swap, and bridge crypto across 20+ blockchains using
+              WhatsApp, SMS, or any phone. AI-powered assistance makes
+              cross-chain DeFi simple for everyone.
             </p>
           </div>
 
@@ -89,10 +92,10 @@ export function HeroSection() {
                 size="lg"
                 className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-pulse-subtle"
                 onClick={() =>
-                  window.open("https://wa.me/1234567890?text=START", "_blank")
+                  window.open("https://wa.me/+14155238886?text=Help", "_blank")
                 }>
                 <MessageCircle className="w-4 h-4 mr-2 animate-bounce-subtle" />
-                Start on WhatsApp
+                Chat with Zest AI
               </Button>
 
               <Button
@@ -102,10 +105,18 @@ export function HeroSection() {
                 <Phone className="w-4 h-4 mr-2 animate-wiggle" />
                 Or dial *777#
               </Button>
+
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-teal-300 text-teal-700 hover:bg-teal-50 px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Text SMS
+              </Button>
             </div>
           </div>
 
-          {/* Enhanced phone mockup with floating animation */}
+          {/* Enhanced WhatsApp mockup with AI conversation */}
           <div
             className={`transition-all duration-1000 ease-out delay-600 ${
               isVisible
@@ -117,9 +128,16 @@ export function HeroSection() {
                 <div className="bg-slate-50 rounded-xl p-4">
                   <div className="flex items-center mb-4 pb-3 border-b border-slate-200">
                     <div className="w-8 h-8 bg-teal-100 rounded-full mr-3 flex items-center justify-center animate-pulse-ring">
-                      <div className="w-4 h-4 bg-teal-600 rounded-full animate-ping"></div>
+                      <div className="w-4 h-4 bg-teal-600 rounded-full"></div>
                     </div>
-                    <span className="font-medium text-slate-800">Zest</span>
+                    <div>
+                      <span className="font-medium text-slate-800">
+                        Zest AI
+                      </span>
+                      <div className="text-xs text-slate-500">
+                        Online • AI Assistant
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-3 text-sm">
@@ -129,7 +147,7 @@ export function HeroSection() {
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
                       }`}>
-                      <p className="text-slate-700">Send 10 USDC to +234...</p>
+                      <p className="text-slate-700">Swap 100 USDC to SOL</p>
                     </div>
 
                     <div
@@ -138,11 +156,34 @@ export function HeroSection() {
                           ? "opacity-100 translate-x-0 scale-100"
                           : "opacity-0 translate-x-4 scale-95"
                       }`}>
-                      <p className="animate-type-in">✓ Sent successfully!</p>
-                      <p
-                        className="text-slate-300 text-xs mt-1 animate-fade-in"
-                        style={{ animationDelay: "1s" }}>
-                        Balance: 45 USDC
+                      <p className="animate-type-in">
+                        I&apos;ll swap 100 USDC to SOL! 🔄
+                      </p>
+                      <p className="text-slate-300 text-xs mt-1">
+                        Best rate: 1 SOL = $142.50
+                      </p>
+                    </div>
+
+                    <div
+                      className={`bg-white rounded-lg p-3 text-left border border-slate-200 transition-all duration-500 delay-500 ${
+                        chatMessages.includes(3)
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 -translate-x-4"
+                      }`}>
+                      <p className="text-slate-700">Yes, do it</p>
+                    </div>
+
+                    <div
+                      className={`bg-slate-800 text-white rounded-lg p-3 text-left transition-all duration-500 delay-700 ${
+                        chatMessages.includes(4)
+                          ? "opacity-100 translate-x-0 scale-100"
+                          : "opacity-0 translate-x-4 scale-95"
+                      }`}>
+                      <p className="animate-type-in">
+                        ✅ Swapped! Got 0.702 SOL
+                      </p>
+                      <p className="text-slate-300 text-xs mt-1">
+                        Via LiFi • Fee: $0.15
                       </p>
                     </div>
                   </div>

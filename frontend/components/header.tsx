@@ -62,7 +62,7 @@ export function Header() {
             <Button
               className="bg-slate-800 hover:bg-slate-700 text-white text-sm px-4 py-2 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               onClick={() =>
-                window.open("https://wa.me/1234567890?text=START", "_blank")
+                window.open("https://wa.me/+14155238886?text=HELP", "_blank")
               }>
               Get Started
             </Button>
@@ -110,7 +110,7 @@ export function Header() {
               <Button
                 className="bg-slate-800 hover:bg-slate-700 text-white w-full mt-4 text-sm transition-all duration-200"
                 onClick={() =>
-                  window.open("https://wa.me/1234567890?text=START", "_blank")
+                  window.open("https://wa.me/+14155238886?text=HELP", "_blank")
                 }>
                 Get Started
               </Button>

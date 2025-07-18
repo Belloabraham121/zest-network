@@ -97,7 +97,7 @@ export function CallToAction() {
                 size="lg"
                 className="bg-white text-slate-800 hover:bg-slate-100 px-8 py-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group animate-button-glow"
                 onClick={() =>
-                  window.open("https://wa.me/1234567890?text=START", "_blank")
+                  window.open("https://wa.me/+1415523-8886?text=HELP", "_blank")
                 }>
                 {/* Button shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

@@ -3,10 +3,6 @@ import { walletService } from "../services/wallet.service";
 import { blockchainService } from "../services/blockchain.service";
 
 export class ApiController {
-  /**
-   * Create a new wallet
-   * POST /api/wallet/create
-   */
   async createWallet(req: Request, res: Response): Promise<void> {
     try {
       const { phoneNumber } = req.body;
@@ -14,19 +10,19 @@ export class ApiController {
       if (!phoneNumber) {
         res.status(400).json({
           success: false,
-          message: "Phone number is required"
+          message: "Phone number is required",
         });
         return;
       }
 
       const result = await walletService.createWallet(phoneNumber, "sms");
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error creating wallet:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -42,19 +38,19 @@ export class ApiController {
       if (!phoneNumber) {
         res.status(400).json({
           success: false,
-          message: "Phone number is required"
+          message: "Phone number is required",
         });
         return;
       }
 
       const result = await walletService.getWalletBalances(phoneNumber);
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error getting balance:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -65,12 +61,13 @@ export class ApiController {
    */
   async transferMNT(req: Request, res: Response): Promise<void> {
     try {
-      const { senderPhone, recipientAddress, amount, recipientPhone } = req.body;
+      const { senderPhone, recipientAddress, amount, recipientPhone } =
+        req.body;
 
       if (!senderPhone || !recipientAddress || !amount) {
         res.status(400).json({
           success: false,
-          message: "senderPhone, recipientAddress, and amount are required"
+          message: "senderPhone, recipientAddress, and amount are required",
         });
         return;
       }
@@ -81,13 +78,13 @@ export class ApiController {
         amount.toString(),
         recipientPhone
       );
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error transferring MNT:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -103,7 +100,7 @@ export class ApiController {
       if (!fromPrivateKey || !toAddress || !amount) {
         res.status(400).json({
           success: false,
-          message: "fromPrivateKey, toAddress, and amount are required"
+          message: "fromPrivateKey, toAddress, and amount are required",
         });
         return;
       }
@@ -112,7 +109,7 @@ export class ApiController {
       if (!blockchainService.isValidAddress(toAddress)) {
         res.status(400).json({
           success: false,
-          message: "Invalid recipient address format"
+          message: "Invalid recipient address format",
         });
         return;
       }
@@ -122,7 +119,7 @@ export class ApiController {
       if (isNaN(amountNum) || amountNum <= 0) {
         res.status(400).json({
           success: false,
-          message: "Invalid amount. Must be a positive number"
+          message: "Invalid amount. Must be a positive number",
         });
         return;
       }
@@ -134,13 +131,13 @@ export class ApiController {
         "direct_transfer", // sender identifier
         toAddress // recipient identifier
       );
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error in direct MNT transfer:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -151,12 +148,13 @@ export class ApiController {
    */
   async transferUSDC(req: Request, res: Response): Promise<void> {
     try {
-      const { senderPhone, recipientAddress, amount, recipientPhone } = req.body;
+      const { senderPhone, recipientAddress, amount, recipientPhone } =
+        req.body;
 
       if (!senderPhone || !recipientAddress || !amount) {
         res.status(400).json({
           success: false,
-          message: "senderPhone, recipientAddress, and amount are required"
+          message: "senderPhone, recipientAddress, and amount are required",
         });
         return;
       }
@@ -167,13 +165,13 @@ export class ApiController {
         amount.toString(),
         recipientPhone
       );
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error transferring USDC:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -189,7 +187,8 @@ export class ApiController {
       if (!senderPhone || !recipientPhone || !amount || !token) {
         res.status(400).json({
           success: false,
-          message: "senderPhone, recipientPhone, amount, and token are required"
+          message:
+            "senderPhone, recipientPhone, amount, and token are required",
         });
         return;
       }
@@ -197,7 +196,7 @@ export class ApiController {
       if (token !== "MNT" && token !== "USDC") {
         res.status(400).json({
           success: false,
-          message: "Invalid token. Supported tokens: MNT, USDC"
+          message: "Invalid token. Supported tokens: MNT, USDC",
         });
         return;
       }
@@ -208,13 +207,13 @@ export class ApiController {
         amount.toString(),
         token as "MNT" | "USDC"
       );
-      
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error("Error transferring to phone:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -227,20 +226,20 @@ export class ApiController {
     try {
       const balance = await blockchainService.getRelayerBalance();
       const gasPrice = await blockchainService.getGasPrice();
-      
+
       res.status(200).json({
         success: true,
         relayer: {
           balance: `${parseFloat(balance).toFixed(4)} MNT`,
           gasPrice: `${gasPrice} gwei`,
-          status: parseFloat(balance) > 0.1 ? "healthy" : "low_balance"
-        }
+          status: parseFloat(balance) > 0.1 ? "healthy" : "low_balance",
+        },
       });
     } catch (error) {
       console.error("Error getting relayer status:", error);
       res.status(500).json({
         success: false,
-        message: "Internal server error"
+        message: "Internal server error",
       });
     }
   }
@@ -252,15 +251,15 @@ export class ApiController {
   async healthCheck(req: Request, res: Response): Promise<void> {
     try {
       const relayerBalance = await blockchainService.getRelayerBalance();
-      
+
       res.status(200).json({
         status: "healthy",
         service: "zest-wallet-api",
         timestamp: new Date().toISOString(),
         relayer: {
           balance: `${parseFloat(relayerBalance).toFixed(4)} MNT`,
-          status: parseFloat(relayerBalance) > 0.1 ? "healthy" : "low_balance"
-        }
+          status: parseFloat(relayerBalance) > 0.1 ? "healthy" : "low_balance",
+        },
       });
     } catch (error) {
       console.error("Health check error:", error);
@@ -268,7 +267,7 @@ export class ApiController {
         status: "unhealthy",
         service: "zest-wallet-api",
         timestamp: new Date().toISOString(),
-        error: "Service unavailable"
+        error: "Service unavailable",
       });
     }
   }

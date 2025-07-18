@@ -325,15 +325,19 @@ export class WebhooksController {
         };
       }
 
-      const { mnt, usdc, address } = balanceResult.balances;
+      const { address, ...balances } = balanceResult.balances;
+      
+      // Get MNT and USDC balances with proper fallbacks
+      const mntBalance = balances.mnt || balances.MNT || "0";
+      const usdcBalance = balances.usdc || balances.USDC || "0";
 
       return {
         success: true,
         message: 
           `💰 Your Wallet Balance\n\n` +
           `Address: ${address}\n\n` +
-          `💎 MNT: ${parseFloat(mnt).toFixed(4)} MNT\n` +
-          `💵 USDC: ${parseFloat(usdc).toFixed(2)} USDC\n\n` +
+          `💎 MNT: ${parseFloat(mntBalance).toFixed(4)} MNT\n` +
+          `💵 USDC: ${parseFloat(usdcBalance).toFixed(2)} USDC\n\n` +
           `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\n` +
           `Reply SEND to transfer tokens.`,
       };

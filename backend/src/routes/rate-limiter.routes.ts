@@ -109,4 +109,42 @@ router.post('/check', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/rate-limiter/reset
+ * Reset rate limit for a phone number (for testing purposes)
+ */
+router.post('/reset', async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number is required'
+      });
+    }
+
+    await rateLimiterService.resetCounter(phoneNumber);
+    const status = await rateLimiterService.getRateLimitStatus(phoneNumber);
+    
+    res.json({
+      success: true,
+      message: `Rate limit reset for ${phoneNumber}`,
+      data: {
+        phoneNumber,
+        messageCount: status.messageCount,
+        dailyLimit: status.dailyLimit,
+        remaining: status.remaining,
+        resetTime: status.resetTime
+      }
+    });
+  } catch (error) {
+    console.error('Error resetting rate limit:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 export default router;

@@ -147,4 +147,30 @@ router.post('/reset', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/rate-limiter/reset-all
+ * Reset rate limits for all users (admin function)
+ */
+router.post('/reset-all', async (req, res) => {
+  try {
+    const result = await rateLimiterService.resetAllCounters();
+    
+    res.json({
+      success: true,
+      message: 'All rate limits have been reset',
+      data: {
+        resetCount: result.resetCount,
+        timestamp: new Date().toISOString(),
+        newDailyLimit: result.newDailyLimit
+      }
+    });
+  } catch (error) {
+    console.error('Error resetting all rate limits:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 export default router;

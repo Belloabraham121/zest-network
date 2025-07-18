@@ -278,6 +278,46 @@ export class RateLimiterService {
     }
   }
 
+  /**
+   * Reset rate limits for all users
+   */
+  async resetAllCounters(): Promise<{
+    resetCount: number;
+    newDailyLimit: number;
+  }> {
+    try {
+      const collection = mongoose.connection.db?.collection(
+        this.COLLECTION_NAME
+      );
+      if (!collection) {
+        console.error("Database connection not available");
+        return { resetCount: 0, newDailyLimit: this.DEFAULT_DAILY_LIMIT };
+      }
+
+      // Reset all existing records
+      const result = await collection.updateMany(
+        {}, // Empty filter to match all documents
+        {
+          $set: {
+            messageCount: 0,
+            lastReset: new Date(),
+            dailyLimit: this.DEFAULT_DAILY_LIMIT, // Update all to current default limit
+          },
+        }
+      );
+
+      console.log(`📊 Reset rate limits for ${result.modifiedCount} users`);
+      
+      return {
+        resetCount: result.modifiedCount,
+        newDailyLimit: this.DEFAULT_DAILY_LIMIT
+      };
+    } catch (error) {
+      console.error("Error resetting all counters:", error);
+      throw error;
+    }
+  }
+
   private getNextResetTime(now: Date): Date {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);

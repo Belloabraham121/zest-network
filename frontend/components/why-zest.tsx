@@ -27,7 +27,7 @@ export function WhyZest() {
     return () => observer.disconnect();
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent, index: number) => {
+  const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
@@ -118,7 +118,7 @@ export function WhyZest() {
                   transitionDelay: `${index * 100 + 200}ms`,
                   transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
                 }}
-                onMouseMove={(e) => handleMouseMove(e, index)}
+                onMouseMove={(e) => handleMouseMove(e)}
                 onMouseLeave={() => setMousePosition({ x: 0, y: 0 })}>
                 <div className="bg-white p-8 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-4 hover:rotate-1 group-hover:scale-105 relative overflow-hidden">
                   {/* Animated background */}

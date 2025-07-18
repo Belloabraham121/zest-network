@@ -8,6 +8,14 @@ export interface TokenConfig {
 }
 
 export const SUPPORTED_TOKENS: Record<string, TokenConfig> = {
+  MNT: {
+    symbol: "MNT",
+    name: "Mantle",
+    address: "0x0000000000000000000000000000000000000000",
+    decimals: 18,
+    isNative: true,
+    enabled: true,
+  },
   USDC: {
     symbol: "USDC",
     name: "USD Coin",

@@ -2,7 +2,12 @@ import { ethers } from "ethers";
 import { env } from "../config/env";
 import { DatabaseService } from "./database.service";
 import { Transaction } from "../types";
-import { getTokenConfig, isTokenSupported, getSupportedTokenSymbols } from "../config/tokens";
+import {
+  getTokenConfig,
+  isTokenSupported,
+  getSupportedTokenSymbols,
+} from "../config/tokens";
+import { transactionHistoryService } from "./transaction-history.service";
 
 export class BlockchainService {
   private provider: ethers.JsonRpcProvider;
@@ -78,6 +83,8 @@ export class BlockchainService {
     message: string;
     transaction?: Transaction;
   }> {
+    let transactionHistoryId: string | undefined;
+
     try {
       const fromWallet = new ethers.Wallet(fromPrivateKey, this.provider);
       const amountWei = ethers.parseEther(amount);
@@ -138,6 +145,19 @@ export class BlockchainService {
         timestamp: Math.floor(Date.now() / 1000),
       };
 
+      // Save transaction to history
+      transactionHistoryId =
+        await transactionHistoryService.createTransferTransaction(
+          senderPhone,
+          fromWallet.address,
+          toAddress,
+          amount,
+          "MNT",
+          env.MANTLE_CHAIN_ID,
+          "whatsapp",
+          recipientPhone
+        );
+
       // Execute the transfer from user's wallet with relayer paying gas
       // Note: In a production system, this would require a meta-transaction or relayer pattern
       // For now, we'll use a simple approach where relayer covers gas by sending gas to user first
@@ -173,6 +193,16 @@ export class BlockchainService {
       if (receipt && receipt.status === 1) {
         transaction.status = "completed";
 
+        // Update transaction history with success
+        await transactionHistoryService.updateTransactionHash(
+          transactionHistoryId,
+          tx.hash,
+          receipt.blockNumber
+        );
+        await transactionHistoryService.markTransactionCompleted(
+          transactionHistoryId
+        );
+
         console.log(`✅ MNT transfer completed: ${tx.hash}`);
         return {
           success: true,
@@ -182,6 +212,13 @@ export class BlockchainService {
         };
       } else {
         transaction.status = "failed";
+
+        // Update transaction history with failure
+        await transactionHistoryService.markTransactionFailed(
+          transactionHistoryId,
+          "Transaction failed during execution"
+        );
+
         return {
           success: false,
           message: "Transaction failed during execution",
@@ -190,6 +227,17 @@ export class BlockchainService {
       }
     } catch (error) {
       console.error("Error transferring MNT:", error);
+
+      // Mark transaction as failed if it was created
+      if (transactionHistoryId) {
+        await transactionHistoryService.markTransactionFailed(
+          transactionHistoryId,
+          `Transfer failed: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+
       return {
         success: false,
         message: "Failed to transfer MNT. Please try again later.",
@@ -213,6 +261,8 @@ export class BlockchainService {
     message: string;
     transaction?: Transaction;
   }> {
+    let transactionHistoryId: string | undefined;
+
     try {
       const fromWallet = new ethers.Wallet(fromPrivateKey, this.provider);
 
@@ -275,6 +325,19 @@ export class BlockchainService {
         )
       );
 
+      // Save transaction to history
+      transactionHistoryId =
+        await transactionHistoryService.createTransferTransaction(
+          senderPhone,
+          fromWallet.address,
+          toAddress,
+          amount,
+          symbol,
+          env.MANTLE_CHAIN_ID,
+          "whatsapp",
+          recipientPhone
+        );
+
       // Create transaction record
       const transaction: Transaction = {
         txId,
@@ -323,6 +386,16 @@ export class BlockchainService {
       if (receipt && receipt.status === 1) {
         transaction.status = "completed";
 
+        // Update transaction history with success
+        await transactionHistoryService.updateTransactionHash(
+          transactionHistoryId,
+          tx.hash,
+          receipt.blockNumber
+        );
+        await transactionHistoryService.markTransactionCompleted(
+          transactionHistoryId
+        );
+
         console.log(`✅ ${symbol} transfer completed: ${tx.hash}`);
         return {
           success: true,
@@ -332,6 +405,13 @@ export class BlockchainService {
         };
       } else {
         transaction.status = "failed";
+
+        // Update transaction history with failure
+        await transactionHistoryService.markTransactionFailed(
+          transactionHistoryId,
+          "Transaction failed during execution"
+        );
+
         return {
           success: false,
           message: "Transaction failed during execution",
@@ -340,6 +420,17 @@ export class BlockchainService {
       }
     } catch (error) {
       console.error("Error transferring token:", error);
+
+      // Mark transaction as failed if it was created
+      if (transactionHistoryId) {
+        await transactionHistoryService.markTransactionFailed(
+          transactionHistoryId,
+          `Transfer failed: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+
       return {
         success: false,
         message: "Failed to transfer token. Please try again later.",
@@ -350,7 +441,9 @@ export class BlockchainService {
   /**
    * Get comprehensive wallet balances for all supported tokens
    */
-  async getWalletBalances(address: string): Promise<Record<string, string> & { address: string }> {
+  async getWalletBalances(
+    address: string
+  ): Promise<Record<string, string> & { address: string }> {
     try {
       const balances: Record<string, string> = {};
       const supportedTokens = getSupportedTokenSymbols();
@@ -387,7 +480,7 @@ export class BlockchainService {
       console.error(`Error getting wallet balances for ${address}:`, error);
       // Return default balances for all supported tokens
       const defaultBalances: Record<string, string> = {};
-      getSupportedTokenSymbols().forEach(symbol => {
+      getSupportedTokenSymbols().forEach((symbol) => {
         defaultBalances[symbol.toLowerCase()] = "0";
       });
       return {
@@ -415,7 +508,7 @@ export class BlockchainService {
   }> {
     try {
       const upperSymbol = tokenSymbol.toUpperCase();
-      
+
       // Check if token is supported
       if (!isTokenSupported(upperSymbol)) {
         const supportedTokens = getSupportedTokenSymbols().join(", ");

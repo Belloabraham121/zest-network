@@ -237,3 +237,104 @@ export interface CrossChainTransfer {
   estimatedTime?: number;
   actualTime?: number;
 }
+
+// Transaction History interface for comprehensive transaction tracking
+export interface TransactionHistory {
+  id: string; // Unique transaction ID
+  userPhone: string; // User's phone number
+  userAddress: string; // User's wallet address
+  type: "transfer" | "swap" | "bridge"; // Transaction type
+  status: "pending" | "processing" | "completed" | "failed" | "cancelled"; // Transaction status
+
+  // Token information
+  fromToken: {
+    address: string;
+    symbol: string;
+    name: string;
+    decimals: number;
+    chainId: number;
+    amount: string; // Amount in token units
+    amountUSD?: string; // USD value at time of transaction
+  };
+
+  toToken?: {
+    address: string;
+    symbol: string;
+    name: string;
+    decimals: number;
+    chainId: number;
+    amount: string; // Expected/actual amount received
+    amountUSD?: string; // USD value at time of transaction
+  };
+
+  // Chain information
+  fromChain: {
+    id: number;
+    name: string;
+    symbol: string;
+  };
+
+  toChain?: {
+    id: number;
+    name: string;
+    symbol: string;
+  };
+
+  // Transaction details
+  recipient?: string; // Recipient address (for transfers)
+  recipientPhone?: string; // Recipient phone (for transfers)
+
+  // Blockchain transaction hashes
+  txHash?: string; // Main transaction hash
+  bridgeTxHash?: string; // Bridge transaction hash (for cross-chain)
+  destinationTxHash?: string; // Destination chain transaction hash
+
+  // LI.FI specific data
+  lifiRouteId?: string; // LI.FI route ID
+  lifiTool?: string; // Bridge/DEX tool used (e.g., "stargate", "hop")
+
+  // Fee information
+  fees: {
+    gas: {
+      amount: string;
+      amountUSD?: string;
+      token: string;
+    };
+    bridge?: {
+      amount: string;
+      amountUSD?: string;
+      token: string;
+      percentage?: string;
+    };
+    protocol?: {
+      amount: string;
+      amountUSD?: string;
+      token: string;
+      percentage?: string;
+    };
+  };
+
+  // Timing information
+  createdAt: Date; // When transaction was initiated
+  updatedAt: Date; // Last update timestamp
+  completedAt?: Date; // When transaction was completed
+  estimatedDuration?: number; // Estimated time in seconds
+  actualDuration?: number; // Actual time taken in seconds
+
+  // Error information
+  errorMessage?: string; // Error message if failed
+  errorCode?: string; // Error code if failed
+
+  // Metadata
+  initiatedVia: "whatsapp" | "sms" | "ussd" | "api"; // How transaction was initiated
+  slippage?: number; // Slippage tolerance used
+  priceImpact?: string; // Price impact percentage
+
+  // Block information
+  blockNumber?: number;
+  blockTimestamp?: number;
+
+  // Additional context
+  notes?: string; // Any additional notes
+  tags?: string[]; // Tags for categorization
+}

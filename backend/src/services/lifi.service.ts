@@ -23,8 +23,7 @@ import {
   LiFiExecutionStatus,
   CrossChainTransfer,
 } from "../types";
-import { STATIC_CHAINS, getStaticSupportedChains } from "../config/static-chains";
-import { getStaticTools } from "../config/static-tools";
+import { ethers } from "ethers";
 
 /**
  * LI.FI Service Class
@@ -57,7 +56,7 @@ export class LiFiService {
 
     this.initializing = true;
     this.initializationPromise = this._doInitialize();
-    
+
     try {
       await this.initializationPromise;
     } finally {
@@ -72,7 +71,9 @@ export class LiFiService {
     try {
       validateLiFiConfig();
       this.initialized = true;
-      console.log("✅ LI.FI Service initialized successfully (lazy loading enabled)");
+      console.log(
+        "✅ LI.FI Service initialized successfully (lazy loading enabled)"
+      );
 
       // Skip pre-loading to avoid hitting rate limits
       // Data will be loaded on-demand when needed
@@ -94,7 +95,7 @@ export class LiFiService {
       try {
         await this.loadChains();
         // Small delay between requests
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         await this.loadTools();
       } catch (error) {
         console.warn("⚠️ Failed to pre-load some LI.FI data:", error);
@@ -109,35 +110,35 @@ export class LiFiService {
   }
 
   /**
-   * Load chains from static data (deprecated - kept for compatibility)
+   * Load and cache chains data
    */
   private async loadChains(): Promise<void> {
     try {
-      console.log("Loading chains from static data...");
-      const chains = getStaticSupportedChains();
-      
-      // Clear existing cache
-      this.chainsCache.clear();
-      
-      // Cache chains
-      chains.forEach((chain: LiFiChain) => {
-        this.chainsCache.set(chain.id, chain);
+      const chains = await executeWithRateLimit(() =>
+        getChains(getLiFiRequestOptions())
+      );
+
+      // Cache chains by ID
+      chains.forEach((chain) => {
+        this.chainsCache.set(chain.id, chain as LiFiChain);
       });
-      
+
       this.cacheTimestamps.set("chains", Date.now());
-      console.log(`✅ Loaded ${chains.length} chains from static data`);
+      console.log(`📊 Loaded ${chains.length} chains`);
     } catch (error) {
-      console.error("Failed to load static chains:", error);
-      throw error;
+      console.error("❌ Failed to load chains:", error);
+      // Don't throw during initialization - service can still function
     }
   }
 
   /**
-   * Load tools from static data (deprecated - kept for compatibility)
+   * Load and cache tools data
    */
   private async loadTools(): Promise<void> {
     try {
-      const tools = getStaticTools();
+      const tools = await executeWithRateLimit(() =>
+        getTools(getLiFiRequestOptions())
+      );
 
       this.toolsCache = tools;
       this.cacheTimestamps.set("tools", Date.now());
@@ -145,11 +146,11 @@ export class LiFiService {
       const bridgeCount = tools.bridges?.length || 0;
       const exchangeCount = tools.exchanges?.length || 0;
       console.log(
-        `🔧 Loaded ${bridgeCount} bridges and ${exchangeCount} exchanges from static data`
+        `🔧 Loaded ${bridgeCount} bridges and ${exchangeCount} exchanges`
       );
     } catch (error) {
-      console.error("❌ Failed to load static tools:", error);
-      throw error;
+      console.error("❌ Failed to load tools:", error);
+      // Don't throw during initialization - service can still function
     }
   }
 
@@ -161,12 +162,18 @@ export class LiFiService {
   }
 
   /**
-   * Get supported chains (using static data to avoid API calls)
+   * Get supported chains
    */
   public async getChains(): Promise<LiFiChain[]> {
-    // Return static chain data to avoid API calls and rate limits
-    console.log('Returning static chain data to avoid API rate limits');
-    return getStaticSupportedChains();
+    await this.ensureInitialized();
+
+    // Check cache freshness
+    const cacheAge = Date.now() - (this.cacheTimestamps.get("chains") || 0);
+    if (cacheAge > lifiConfig.cacheTtl * 1000) {
+      await this.loadChains();
+    }
+
+    return Array.from(this.chainsCache.values());
   }
 
   /**
@@ -229,12 +236,18 @@ export class LiFiService {
   }
 
   /**
-   * Get available tools (bridges and exchanges) using static data
+   * Get available tools (bridges and exchanges)
    */
   public async getTools(): Promise<any> {
-    // Return static tools data to avoid API calls and rate limits
-    console.log('Returning static tools data to avoid API rate limits');
-    return getStaticTools();
+    await this.ensureInitialized();
+
+    // Check cache freshness
+    const cacheAge = Date.now() - (this.cacheTimestamps.get("tools") || 0);
+    if (cacheAge > lifiConfig.cacheTtl * 1000) {
+      await this.loadTools();
+    }
+
+    return this.toolsCache;
   }
 
   /**
@@ -354,6 +367,39 @@ export class LiFiService {
     } catch (error) {
       console.error("❌ Failed to get execution status:", error);
       throw this.handleError(error, "getExecutionStatus");
+    }
+  }
+
+  /**
+   * Convert amount to wei format using token decimals
+   */
+  public async convertAmountToWei(
+    amount: string,
+    tokenSymbol: string,
+    chainId: number
+  ): Promise<string> {
+    try {
+      // Get tokens for the chain
+      const tokens = await this.getTokens(chainId);
+      
+      // Find the token by symbol
+      const token = tokens.find(
+        (t) => t.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+      );
+      
+      if (!token) {
+        // Default to 18 decimals for unknown tokens
+        console.warn(`Token ${tokenSymbol} not found on chain ${chainId}, using 18 decimals`);
+        return ethers.parseUnits(amount, 18).toString();
+      }
+      
+      // Convert amount to wei using token decimals
+      const weiAmount = ethers.parseUnits(amount, token.decimals);
+      return weiAmount.toString();
+    } catch (error) {
+      console.error(`Error converting amount to wei:`, error);
+      // Fallback to 18 decimals
+      return ethers.parseUnits(amount, 18).toString();
     }
   }
 

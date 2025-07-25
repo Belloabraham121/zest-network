@@ -181,26 +181,42 @@ export async function executeWithRateLimit<T>(
           error.message.includes("429")
         ) {
           console.warn(
-            `❌ LI.FI API rate limit exceeded (attempt ${attempt + 1}/${retries + 1}):`,
+            `❌ LI.FI API rate limit exceeded (attempt ${attempt + 1}/${
+              retries + 1
+            }):`,
             error.message
           );
 
           // Extract retry-after from error if available
           let retryAfter = 3600; // Default to 1 hour as mentioned in error
-          if ((error as any).cause && (error as any).cause.response && (error as any).cause.response.headers) {
-            const retryAfterHeader = (error as any).cause.response.headers.get('retry-after');
+          if (
+            (error as any).cause &&
+            (error as any).cause.response &&
+            (error as any).cause.response.headers
+          ) {
+            const retryAfterHeader = (error as any).cause.response.headers.get(
+              "retry-after"
+            );
             if (retryAfterHeader) {
               retryAfter = parseInt(retryAfterHeader, 10);
             }
           }
 
           if (!isLastAttempt) {
-            console.log(`⏳ LI.FI API rate limit hit. Waiting ${retryAfter} seconds before retry...`);
-            await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+            console.log(
+              `⏳ LI.FI API rate limit hit. Waiting ${retryAfter} seconds before retry...`
+            );
+            await new Promise((resolve) =>
+              setTimeout(resolve, retryAfter * 1000)
+            );
             continue;
           } else {
             // On final attempt, throw a user-friendly error
-            throw new Error(`LI.FI API rate limit exceeded. Please try again in ${Math.ceil(retryAfter / 60)} minutes.`);
+            throw new Error(
+              `LI.FI API rate limit exceeded. Please try again in ${Math.ceil(
+                retryAfter / 60
+              )} minutes.`
+            );
           }
         }
 

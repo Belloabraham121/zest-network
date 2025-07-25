@@ -9,6 +9,7 @@ import apiRoutes from "./routes/api.routes";
 import tokensRoutes from "./routes/tokens.routes";
 import rateLimiterRoutes from "./routes/rate-limiter.routes";
 import lifiRoutes from "./routes/lifi.routes";
+import transactionHistoryRoutes from "./routes/transaction-history.routes";
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use("/api/wallets", walletsRoutes);
 app.use("/api/tokens", tokensRoutes);
 app.use("/api/rate-limiter", rateLimiterRoutes);
 app.use("/api/lifi", lifiRoutes);
+app.use("/api/transaction-history", transactionHistoryRoutes);
 app.use("/api", apiRoutes);
 
 app.get("/health", (req, res) => {
@@ -58,6 +60,7 @@ app.get("/health", (req, res) => {
       balance: "/api/wallet/balance",
       relayer: "/api/relayer/status",
       lifi: "/api/lifi",
+      transactionHistory: "/api/transaction-history",
     },
   });
 });
@@ -74,7 +77,7 @@ app.get("/", (req, res) => {
       "💎 MNT & USDC token transfers",
       "⛽ Gasless transactions (relayer pays fees)",
       "📱 WhatsApp & SMS integration",
-      "🔗 Mantle blockchain support"
+      "🔗 Mantle blockchain support",
     ],
     nodemon: "✅ Auto-restart enabled with nodemon",
     endpoints: {
@@ -106,11 +109,16 @@ app.listen(PORT, () => {
   console.log(`💼 Wallets API: http://localhost:${PORT}/api/wallets`);
   console.log(`🪙 Tokens API: http://localhost:${PORT}/api/tokens`);
   console.log(`💎 Transfer API: http://localhost:${PORT}/api/transfer`);
-  console.log(`🚀 Direct MNT Transfer: http://localhost:${PORT}/api/transfer/mnt/direct`);
+  console.log(
+    `🚀 Direct MNT Transfer: http://localhost:${PORT}/api/transfer/mnt/direct`
+  );
   console.log(`💰 Balance API: http://localhost:${PORT}/api/wallet/balance`);
   console.log(`⛽ Relayer Status: http://localhost:${PORT}/api/relayer/status`);
   console.log(`📊 Rate Limiter API: http://localhost:${PORT}/api/rate-limiter`);
   console.log(`🌉 LI.FI API: http://localhost:${PORT}/api/lifi`);
+  console.log(
+    `📜 Transaction History API: http://localhost:${PORT}/api/transaction-history`
+  );
   console.log(`❤️ Health check: http://localhost:${PORT}/health`);
 });
 

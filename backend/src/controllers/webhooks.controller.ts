@@ -5,6 +5,9 @@ import { lifiQuoteManager } from "../services/lifi-quote-manager.service";
 import { lifiCrossChainExecutor } from "../services/lifi-cross-chain-executor.service";
 import { lifiChainManager } from "../services/lifi-chain-manager.service";
 import { lifiService } from "../services/lifi.service";
+import { lifiTokenManager } from "../services/lifi-token-manager.service";
+import { LiFiExecutionEngineService } from "../services/lifi-execution-engine.service";
+import { TransactionHistoryService } from "../services/transaction-history.service";
 import { WhatsappPayload } from "../types";
 import { env } from "../config/env";
 import { getSupportedTokenSymbols, isTokenSupported } from "../config/tokens";
@@ -50,7 +53,7 @@ export class WebhooksController {
     // Handle "SEND" command with "TO" keyword
     if (command === "SEND" || command === "TRANSFER") {
       // Remove "TO" keyword if present to normalize the command format
-      args = args.filter(arg => arg !== "TO");
+      args = args.filter((arg) => arg !== "TO");
     }
 
     return {
@@ -75,17 +78,25 @@ export class WebhooksController {
       const phoneNumber = this.extractPhoneNumber(From);
       const { command, args } = this.parseCommand(Body);
 
-      console.log(`WhatsApp command from ${phoneNumber}: ${command}`, 'args:', args);
-      
+      console.log(
+        `WhatsApp command from ${phoneNumber}: ${command}`,
+        "args:",
+        args
+      );
+
       // Check rate limits before processing
-      const rateLimitCheck = await rateLimiterService.canSendMessage(phoneNumber);
+      const rateLimitCheck = await rateLimiterService.canSendMessage(
+        phoneNumber
+      );
       if (!rateLimitCheck.allowed) {
-        console.warn(`🚫 Rate limit exceeded for ${phoneNumber}: ${rateLimitCheck.reason}`);
+        console.warn(
+          `🚫 Rate limit exceeded for ${phoneNumber}: ${rateLimitCheck.reason}`
+        );
         const rateLimitTwiml = `<?xml version="1.0" encoding="UTF-8"?>
         <Response>
           <Message>⚠️ Daily message limit reached. Please try again tomorrow or upgrade your account for higher limits.</Message>
         </Response>`;
-        
+
         res.set("Content-Type", "text/xml");
         res.status(200).send(rateLimitTwiml);
         return;
@@ -159,11 +170,21 @@ export class WebhooksController {
           response = await this.handleDeleteCommand(phoneNumber);
           break;
 
+        case "HISTORY":
+        case "TRANSACTIONS":
+          response = await this.handleHistoryCommand(phoneNumber, args);
+          break;
+
+        case "STATS":
+        case "STATISTICS":
+          response = await this.handleStatsCommand(phoneNumber);
+          break;
+
         default:
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HELP",
+              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, HELP",
           };
       }
 
@@ -172,32 +193,40 @@ export class WebhooksController {
         <Message>${response.message}</Message>
       </Response>`;
 
-      console.log(`[WhatsApp Response] To: ${phoneNumber}, Command: ${command}, Success: ${response.success}`);
+      console.log(
+        `[WhatsApp Response] To: ${phoneNumber}, Command: ${command}, Success: ${response.success}`
+      );
       console.log(`[WhatsApp TwiML] ${twiml}`);
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(twiml);
-      
+
       // Record the message in rate limiter
       await rateLimiterService.recordMessage(phoneNumber);
-      
-      const rateLimitStatus = await rateLimiterService.getRateLimitStatus(phoneNumber);
+
+      const rateLimitStatus = await rateLimiterService.getRateLimitStatus(
+        phoneNumber
+      );
       console.log(`[WhatsApp] Response sent successfully to ${phoneNumber}`);
-      console.log(`📊 Rate Limit Status: ${rateLimitStatus.remaining}/${rateLimitStatus.dailyLimit} messages remaining`);
-      
+      console.log(
+        `📊 Rate Limit Status: ${rateLimitStatus.remaining}/${rateLimitStatus.dailyLimit} messages remaining`
+      );
+
       if (rateLimitStatus.remaining <= 2) {
-        console.warn(`⚠️  WARNING: Only ${rateLimitStatus.remaining} messages remaining for ${phoneNumber}`);
+        console.warn(
+          `⚠️  WARNING: Only ${rateLimitStatus.remaining} messages remaining for ${phoneNumber}`
+        );
       }
     } catch (error) {
       console.error("WhatsApp webhook error:", error);
-      
+
       // Check if it's a Twilio rate limit error (429)
       const err = error as any;
       if (err.status === 429 || err.code === 63038) {
-        console.error('🚨 TWILIO RATE LIMIT EXCEEDED:', {
+        console.error("🚨 TWILIO RATE LIMIT EXCEEDED:", {
           errorCode: err.code,
           message: err.message,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -229,16 +258,20 @@ export class WebhooksController {
       const { command, args } = this.parseCommand(Body);
 
       console.log(`SMS command from ${phoneNumber}: ${command}`);
-      
+
       // Check rate limits before processing
-      const rateLimitCheck = await rateLimiterService.canSendMessage(phoneNumber);
+      const rateLimitCheck = await rateLimiterService.canSendMessage(
+        phoneNumber
+      );
       if (!rateLimitCheck.allowed) {
-        console.warn(`🚫 Rate limit exceeded for ${phoneNumber}: ${rateLimitCheck.reason}`);
+        console.warn(
+          `🚫 Rate limit exceeded for ${phoneNumber}: ${rateLimitCheck.reason}`
+        );
         const rateLimitTwiml = `<?xml version="1.0" encoding="UTF-8"?>
         <Response>
           <Message>⚠️ Daily message limit reached. Please try again tomorrow or upgrade your account for higher limits.</Message>
         </Response>`;
-        
+
         res.set("Content-Type", "text/xml");
         res.status(200).send(rateLimitTwiml);
         return;
@@ -295,11 +328,21 @@ export class WebhooksController {
           response = this.handleHelpCommand();
           break;
 
+        case "HISTORY":
+        case "TRANSACTIONS":
+          response = await this.handleHistoryCommand(phoneNumber, args);
+          break;
+
+        case "STATS":
+        case "STATISTICS":
+          response = await this.handleStatsCommand(phoneNumber);
+          break;
+
         default:
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HELP",
+              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, HELP",
           };
       }
 
@@ -308,32 +351,40 @@ export class WebhooksController {
         <Message>${response.message}</Message>
       </Response>`;
 
-      console.log(`[SMS Response] To: ${phoneNumber}, Command: ${command}, Success: ${response.success}`);
+      console.log(
+        `[SMS Response] To: ${phoneNumber}, Command: ${command}, Success: ${response.success}`
+      );
       console.log(`[SMS TwiML] ${twiml}`);
 
       res.set("Content-Type", "text/xml");
       res.status(200).send(twiml);
-      
+
       // Record the message in rate limiter
       await rateLimiterService.recordMessage(phoneNumber);
-      
-      const rateLimitStatus = await rateLimiterService.getRateLimitStatus(phoneNumber);
+
+      const rateLimitStatus = await rateLimiterService.getRateLimitStatus(
+        phoneNumber
+      );
       console.log(`[SMS] Response sent successfully to ${phoneNumber}`);
-      console.log(`📊 Rate Limit Status: ${rateLimitStatus.remaining}/${rateLimitStatus.dailyLimit} messages remaining`);
-      
+      console.log(
+        `📊 Rate Limit Status: ${rateLimitStatus.remaining}/${rateLimitStatus.dailyLimit} messages remaining`
+      );
+
       if (rateLimitStatus.remaining <= 2) {
-        console.warn(`⚠️  WARNING: Only ${rateLimitStatus.remaining} messages remaining for ${phoneNumber}`);
+        console.warn(
+          `⚠️  WARNING: Only ${rateLimitStatus.remaining} messages remaining for ${phoneNumber}`
+        );
       }
     } catch (error) {
       console.error("SMS webhook error:", error);
-      
+
       // Check if it's a Twilio rate limit error
       const err = error as any;
       if (err.status === 429 || err.code === 63038) {
-        console.error('🚨 TWILIO RATE LIMIT EXCEEDED:', {
+        console.error("🚨 TWILIO RATE LIMIT EXCEEDED:", {
           errorCode: err.code,
           message: err.message,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -359,19 +410,21 @@ export class WebhooksController {
       if (!balanceResult.success || !balanceResult.balances) {
         return {
           success: false,
-          message: balanceResult.message || "No wallet found. Reply CREATE to create a new wallet.",
+          message:
+            balanceResult.message ||
+            "No wallet found. Reply CREATE to create a new wallet.",
         };
       }
 
       const { address, ...balances } = balanceResult.balances;
-      
+
       // Get MNT and USDC balances with proper fallbacks
       const mntBalance = balances.mnt || balances.MNT || "0";
       const usdcBalance = balances.usdc || balances.USDC || "0";
 
       return {
         success: true,
-        message: 
+        message:
           `💰 Your Wallet Balance\n\n` +
           `Address: ${address}\n\n` +
           `💎 MNT: ${parseFloat(mntBalance).toFixed(4)} MNT\n` +
@@ -455,7 +508,10 @@ export class WebhooksController {
     args: string[]
   ): Promise<{ success: boolean; message: string }> {
     try {
-      console.log(`[DEBUG] handleSendCommand called with phoneNumber: ${phoneNumber}, args:`, args);
+      console.log(
+        `[DEBUG] handleSendCommand called with phoneNumber: ${phoneNumber}, args:`,
+        args
+      );
       if (args.length < 3) {
         return {
           success: false,
@@ -561,24 +617,27 @@ export class WebhooksController {
   ): Promise<{ success: boolean; message: string }> {
     try {
       const sanitizedPhone = phoneNumber.replace(/[^+\d]/g, "");
-      const deleted = await walletService.dbService.deleteWallet(sanitizedPhone);
-      
+      const deleted = await walletService.dbService.deleteWallet(
+        sanitizedPhone
+      );
+
       if (deleted) {
         return {
           success: true,
-          message: "Wallet deleted successfully. You can now create a new wallet with CREATE."
+          message:
+            "Wallet deleted successfully. You can now create a new wallet with CREATE.",
         };
       } else {
         return {
           success: false,
-          message: "No wallet found to delete."
+          message: "No wallet found to delete.",
         };
       }
     } catch (error) {
       console.error("Error deleting wallet:", error);
       return {
         success: false,
-        message: "Error deleting wallet. Please try again."
+        message: "Error deleting wallet. Please try again.",
       };
     }
   }
@@ -586,7 +645,7 @@ export class WebhooksController {
   private handleHelpCommand(): { success: boolean; message: string } {
     const supportedTokens = getSupportedTokenSymbols();
     const primaryToken = supportedTokens[0] || "MNT";
-    
+
     const helpMessage =
       `🔹 Zest Wallet Commands:\n\n` +
       `📱 Basic Commands:\n` +
@@ -602,6 +661,10 @@ export class WebhooksController {
       `SWAP - Swap tokens on same chain\n` +
       `QUOTE - Get price quotes\n` +
       `CHAINS - List supported chains\n\n` +
+      `📋 Transaction History:\n` +
+      `HISTORY - View recent transactions\n` +
+      `HISTORY 20 - View more transactions\n` +
+      `STATS - View transaction statistics\n\n` +
       `💸 Transfer Examples:\n` +
       `SEND 10 ${primaryToken} +1234567890\n` +
       `SEND 0.5 ${primaryToken} 0x123...\n\n` +
@@ -630,7 +693,7 @@ export class WebhooksController {
             "Invalid ADDTOKEN format. Use:\n\n" +
             "ADDTOKEN <symbol> <name> <address> [decimals]\n\n" +
             "Example:\n" +
-            "ADDTOKEN USDT \"Tether USD\" 0x123... 6",
+            'ADDTOKEN USDT "Tether USD" 0x123... 6',
         };
       }
 
@@ -680,7 +743,10 @@ export class WebhooksController {
       const [symbol, action] = args;
       const enabled = action.toLowerCase() === "enable";
 
-      if (action.toLowerCase() !== "enable" && action.toLowerCase() !== "disable") {
+      if (
+        action.toLowerCase() !== "enable" &&
+        action.toLowerCase() !== "disable"
+      ) {
         return {
           success: false,
           message: "Action must be either 'enable' or 'disable'.",
@@ -701,7 +767,7 @@ export class WebhooksController {
   private handleTokensCommand(): { success: boolean; message: string } {
     try {
       const { success, tokens } = walletService.getSupportedTokens();
-      
+
       if (!success || Object.keys(tokens).length === 0) {
         return {
           success: false,
@@ -710,7 +776,7 @@ export class WebhooksController {
       }
 
       let message = "🪙 Supported Tokens:\n\n";
-      
+
       for (const [symbol, config] of Object.entries(tokens)) {
         const status = config.enabled ? "✅" : "❌";
         const type = config.isNative ? "(Native)" : "(ERC-20)";
@@ -768,8 +834,16 @@ export class WebhooksController {
 
       // Get chain IDs
       const chains = await lifiChainManager.getSupportedChains();
-      const fromChainData = chains.find(c => c.name.toLowerCase() === fromChain.toLowerCase() || c.key.toLowerCase() === fromChain.toLowerCase());
-      const toChainData = chains.find(c => c.name.toLowerCase() === toChain.toLowerCase() || c.key.toLowerCase() === toChain.toLowerCase());
+      const fromChainData = chains.find(
+        (c) =>
+          c.name.toLowerCase() === fromChain.toLowerCase() ||
+          c.key.toLowerCase() === fromChain.toLowerCase()
+      );
+      const toChainData = chains.find(
+        (c) =>
+          c.name.toLowerCase() === toChain.toLowerCase() ||
+          c.key.toLowerCase() === toChain.toLowerCase()
+      );
 
       if (!fromChainData || !toChainData) {
         return {
@@ -779,7 +853,9 @@ export class WebhooksController {
       }
 
       // Resolve destination address
-      const resolvedToAddress = toAddress.startsWith("+") ? await this.resolvePhoneToAddress(toAddress) : toAddress;
+      const resolvedToAddress = toAddress.startsWith("+")
+        ? await this.resolvePhoneToAddress(toAddress)
+        : toAddress;
 
       // Get quote first
       const quoteRequest = {
@@ -789,22 +865,26 @@ export class WebhooksController {
         toToken: token.toUpperCase(),
         fromAmount: amount,
         fromAddress: wallet.address,
-        toAddress: resolvedToAddress
+        toAddress: resolvedToAddress,
       };
 
       const quote = await lifiQuoteManager.getQuote(quoteRequest);
 
-       return {
-         success: true,
-         message:
-           `🌉 Bridge Quote Ready!\n\n` +
-           `From: ${amount} ${token} on ${fromChainData.name}\n` +
-           `To: ~${quote.estimate?.toAmount || 'N/A'} ${token} on ${toChainData.name}\n` +
-           `Estimated Time: ${Math.round((quote.estimate?.executionDuration || 0) / 60)} min\n` +
-           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n\n` +
-           `⚠️ Cross-chain bridging is complex. This is a quote only.\n` +
-           `For execution, use our web interface.`,
-       };
+      return {
+        success: true,
+        message:
+          `🌉 Bridge Quote Ready!\n\n` +
+          `From: ${amount} ${token} on ${fromChainData.name}\n` +
+          `To: ~${quote.estimate?.toAmount || "N/A"} ${token} on ${
+            toChainData.name
+          }\n` +
+          `Estimated Time: ${Math.round(
+            (quote.estimate?.executionDuration || 0) / 60
+          )} min\n` +
+          `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n\n` +
+          `⚠️ Cross-chain bridging is complex. This is a quote only.\n` +
+          `For execution, use our web interface.`,
+      };
     } catch (error) {
       console.error("Error handling bridge command:", error);
       return {
@@ -845,41 +925,117 @@ export class WebhooksController {
       }
 
       // Default to Mantle chain or specified chain
-       let chainId = env.MANTLE_CHAIN_ID;
-       if (chain) {
-         const chains = await lifiChainManager.getSupportedChains();
-         const chainData = chains.find(c => c.name.toLowerCase() === chain.toLowerCase() || c.key.toLowerCase() === chain.toLowerCase());
-         if (chainData) {
-           chainId = chainData.id;
-         }
-       }
+      let chainId = env.MANTLE_CHAIN_ID;
+      if (chain) {
+        const chains = await lifiChainManager.getSupportedChains();
+        const chainData = chains.find(
+          (c) =>
+            c.name.toLowerCase() === chain.toLowerCase() ||
+            c.key.toLowerCase() === chain.toLowerCase()
+        );
+        if (chainData) {
+          chainId = chainData.id;
+        }
+      }
 
-       // Get quote
-       const quoteRequest = {
-         fromChain: chainId,
-         toChain: chainId,
-         fromToken: fromToken.toUpperCase(),
-         toToken: toToken.toUpperCase(),
-         fromAmount: amount,
-         fromAddress: wallet.address
-       };
+      // Convert amount to wei format
+      const fromAmountWei = await lifiService.convertAmountToWei(
+        amount,
+        fromToken,
+        chainId
+      );
 
-       const quote = await lifiQuoteManager.getQuote(quoteRequest);
+      // Get quote
+      const quoteRequest = {
+        fromChain: chainId,
+        toChain: chainId,
+        fromToken: fromToken.toUpperCase(),
+        toToken: toToken.toUpperCase(),
+        fromAmount: fromAmountWei,
+        fromAddress: wallet.address,
+      };
 
-       const exchangeRate = quote.estimate?.toAmount && quote.estimate?.fromAmount 
-         ? (parseFloat(quote.estimate.toAmount) / parseFloat(quote.estimate.fromAmount)).toFixed(4)
-         : 'N/A';
+      const quote = await lifiQuoteManager.getQuote(quoteRequest);
 
-       return {
-         success: true,
-         message:
-           `🔄 Swap Quote Ready!\n\n` +
-           `From: ${amount} ${fromToken.toUpperCase()}\n` +
-           `To: ~${quote.estimate?.toAmount || 'N/A'} ${toToken.toUpperCase()}\n` +
-           `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
-           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n\n` +
-           `⚠️ This is a quote only. For execution, use our web interface.`,
-       };
+      // Convert toAmount from wei to human-readable format
+      let toAmountFormatted = "N/A";
+      if (quote.estimate?.toAmount) {
+        try {
+          const toTokenData = await lifiService.getTokens(chainId);
+          const toTokenInfo = toTokenData.find(
+            (t) => t.symbol.toLowerCase() === toToken.toLowerCase()
+          );
+          const decimals = toTokenInfo?.decimals || 18;
+          toAmountFormatted = lifiTokenManager.fromWei(quote.estimate.toAmount, decimals);
+          // Format to reasonable decimal places
+          const numAmount = parseFloat(toAmountFormatted);
+          if (!isNaN(numAmount)) {
+            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, '');
+          }
+        } catch (error) {
+          console.warn("Failed to format toAmount:", error);
+          toAmountFormatted = quote.estimate.toAmount;
+        }
+      }
+
+      const exchangeRate =
+        toAmountFormatted !== "N/A" && amount
+          ? (
+              parseFloat(toAmountFormatted) /
+              parseFloat(amount)
+            ).toFixed(4)
+          : "N/A";
+
+      // Execute the swap automatically
+      try {
+        const executionEngine = new LiFiExecutionEngineService();
+        const executionRequest = {
+          quote,
+          fromAddress: wallet.address,
+          toAddress: wallet.address,
+        };
+
+        console.log(`🚀 Executing swap for ${phoneNumber}:`, {
+          from: `${amount} ${fromToken.toUpperCase()}`,
+          to: `~${toAmountFormatted} ${toToken.toUpperCase()}`,
+          wallet: wallet.address
+        });
+
+        const executionResult = await executionEngine.executeTransaction(executionRequest);
+
+        if (executionResult.success && executionResult.transactionHash) {
+          return {
+            success: true,
+            message:
+              `✅ Swap Executed Successfully!\n\n` +
+              `From: ${amount} ${fromToken.toUpperCase()}\n` +
+              `To: ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+              `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+              `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n\n` +
+              `🔗 Transaction Hash: ${executionResult.transactionHash}\n` +
+              `⏱️ Execution Time: ${Math.round((executionResult.executionTime || 0) / 1000)}s`,
+          };
+        } else {
+          return {
+            success: false,
+            message:
+              `❌ Swap Execution Failed\n\n` +
+              `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+              `Error: ${executionResult.error || "Unknown execution error"}\n\n` +
+              `Please try again or contact support.`,
+          };
+        }
+      } catch (executionError) {
+        console.error("Swap execution failed:", executionError);
+        return {
+          success: false,
+          message:
+            `❌ Swap Execution Failed\n\n` +
+            `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+            `Error: ${executionError instanceof Error ? executionError.message : String(executionError)}\n\n` +
+            `Please try again or contact support.`,
+        };
+      }
     } catch (error) {
       console.error("Error handling swap command:", error);
       return {
@@ -920,50 +1076,102 @@ export class WebhooksController {
       }
 
       // Determine chain IDs
-       let fromChainId = env.MANTLE_CHAIN_ID;
-       let toChainId = env.MANTLE_CHAIN_ID;
+      let fromChainId = env.MANTLE_CHAIN_ID;
+      let toChainId = env.MANTLE_CHAIN_ID;
 
-       if (fromChain && toChain) {
-         const chains = await lifiChainManager.getSupportedChains();
-         const fromChainData = chains.find(c => c.name.toLowerCase() === fromChain.toLowerCase() || c.key.toLowerCase() === fromChain.toLowerCase());
-         const toChainData = chains.find(c => c.name.toLowerCase() === toChain.toLowerCase() || c.key.toLowerCase() === toChain.toLowerCase());
-         
-         if (fromChainData) fromChainId = fromChainData.id;
-         if (toChainData) toChainId = toChainData.id;
-       }
+      if (fromChain && toChain) {
+        const chains = await lifiChainManager.getSupportedChains();
+        const fromChainData = chains.find(
+          (c) =>
+            c.name.toLowerCase() === fromChain.toLowerCase() ||
+            c.key.toLowerCase() === fromChain.toLowerCase()
+        );
+        const toChainData = chains.find(
+          (c) =>
+            c.name.toLowerCase() === toChain.toLowerCase() ||
+            c.key.toLowerCase() === toChain.toLowerCase()
+        );
 
-       // Get quote
-       const quoteRequest = {
-         fromChain: fromChainId,
-         toChain: toChainId,
-         fromToken: fromToken.toUpperCase(),
-         toToken: toToken.toUpperCase(),
-         fromAmount: amount,
-         fromAddress: wallet.address
-       };
+        if (fromChainData) fromChainId = fromChainData.id;
+        if (toChainData) toChainId = toChainData.id;
+      }
 
-       const quote = await lifiQuoteManager.getQuote(quoteRequest);
+      // Convert amount to wei format
+      const fromAmountWei = await lifiService.convertAmountToWei(
+        amount,
+        fromToken,
+        fromChainId
+      );
 
-       const isCrossChain = fromChainId !== toChainId;
-       const typeIcon = isCrossChain ? "🌉" : "🔄";
-       const typeText = isCrossChain ? "Cross-Chain" : "Swap";
-       
-       const exchangeRate = quote.estimate?.toAmount && quote.estimate?.fromAmount 
-         ? (parseFloat(quote.estimate.toAmount) / parseFloat(quote.estimate.fromAmount)).toFixed(4)
-         : 'N/A';
+      // Get quote
+      const quoteRequest = {
+        fromChain: fromChainId,
+        toChain: toChainId,
+        fromToken: fromToken.toUpperCase(),
+        toToken: toToken.toUpperCase(),
+        fromAmount: fromAmountWei,
+        fromAddress: wallet.address,
+      };
 
-       return {
-         success: true,
-         message:
-           `${typeIcon} ${typeText} Quote\n\n` +
-           `From: ${amount} ${fromToken.toUpperCase()}\n` +
-           `To: ~${quote.estimate?.toAmount || 'N/A'} ${toToken.toUpperCase()}\n` +
-           `${isCrossChain ? `From Chain: ${fromChain || 'Mantle'}\nTo Chain: ${toChain || 'Mantle'}\n` : ''}` +
-           `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
-           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n` +
-           `${isCrossChain ? `Estimated Time: ${Math.round((quote.estimate?.executionDuration || 0) / 60)} min\n` : ''}\n` +
-           `⚠️ Quote only. Use web interface for execution.`,
-       };
+      const quote = await lifiQuoteManager.getQuote(quoteRequest);
+
+      const isCrossChain = fromChainId !== toChainId;
+      const typeIcon = isCrossChain ? "🌉" : "🔄";
+      const typeText = isCrossChain ? "Cross-Chain" : "Swap";
+
+      // Convert toAmount from wei to human-readable format
+      let toAmountFormatted = "N/A";
+      if (quote.estimate?.toAmount) {
+        try {
+          const toTokenData = await lifiService.getTokens(toChainId);
+          const toTokenInfo = toTokenData.find(
+            (t) => t.symbol.toLowerCase() === toToken.toLowerCase()
+          );
+          const decimals = toTokenInfo?.decimals || 18;
+          toAmountFormatted = lifiTokenManager.fromWei(quote.estimate.toAmount, decimals);
+          // Format to reasonable decimal places
+          const numAmount = parseFloat(toAmountFormatted);
+          if (!isNaN(numAmount)) {
+            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, '');
+          }
+        } catch (error) {
+          console.warn("Failed to format toAmount:", error);
+          toAmountFormatted = quote.estimate.toAmount;
+        }
+      }
+
+      const exchangeRate =
+        toAmountFormatted !== "N/A" && amount
+          ? (
+              parseFloat(toAmountFormatted) /
+              parseFloat(amount)
+            ).toFixed(4)
+          : "N/A";
+
+      return {
+        success: true,
+        message:
+          `${typeIcon} ${typeText} Quote\n\n` +
+          `From: ${amount} ${fromToken.toUpperCase()}\n` +
+          `To: ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+          `${
+            isCrossChain
+              ? `From Chain: ${fromChain || "Mantle"}\nTo Chain: ${
+                  toChain || "Mantle"
+                }\n`
+              : ""
+          }` +
+          `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+          `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n` +
+          `${
+            isCrossChain
+              ? `Estimated Time: ${Math.round(
+                  (quote.estimate?.executionDuration || 0) / 60
+                )} min\n`
+              : ""
+          }\n` +
+          `⚠️ Quote only. Use web interface for execution.`,
+      };
     } catch (error) {
       console.error("Error handling quote command:", error);
       return {
@@ -973,10 +1181,13 @@ export class WebhooksController {
     }
   }
 
-  private async handleChainsCommand(): Promise<{ success: boolean; message: string }> {
+  private async handleChainsCommand(): Promise<{
+    success: boolean;
+    message: string;
+  }> {
     try {
       const chains = await lifiChainManager.getSupportedChains();
-      
+
       if (!chains || chains.length === 0) {
         return {
           success: false,
@@ -985,10 +1196,10 @@ export class WebhooksController {
       }
 
       let message = "🔗 Supported Chains:\n\n";
-      
+
       // Show top 10 most popular chains
       const popularChains = chains.slice(0, 10);
-      
+
       for (const chain of popularChains) {
         message += `• ${chain.name} (${chain.key})\n`;
         message += `  Chain ID: ${chain.id}\n\n`;
@@ -1019,6 +1230,117 @@ export class WebhooksController {
       return wallet?.address || phoneNumber;
     } catch (error) {
       return phoneNumber;
+    }
+  }
+
+  private async handleHistoryCommand(
+    phoneNumber: string,
+    args: string[]
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const transactionHistoryService = new TransactionHistoryService();
+      const limit = args[0] ? parseInt(args[0]) : 10;
+      const validLimit = Math.min(Math.max(limit, 1), 20); // Limit between 1-20
+
+      const transactions =
+        await transactionHistoryService.getUserTransactionHistory(
+          phoneNumber,
+          validLimit,
+          0
+        );
+
+      if (!transactions || transactions.length === 0) {
+        return {
+          success: true,
+          message:
+            "📋 No transaction history found.\n\nStart using SEND, BRIDGE, or SWAP commands to build your transaction history!",
+        };
+      }
+
+      let message = `📋 Recent Transactions (${transactions.length}):\n\n`;
+
+      for (const tx of transactions) {
+        const date = new Date(tx.createdAt).toLocaleDateString();
+        const typeIcon =
+          tx.type === "transfer" ? "💸" : tx.type === "bridge" ? "🌉" : "🔄";
+        const status =
+          tx.status === "completed"
+            ? "✅"
+            : tx.status === "failed"
+            ? "❌"
+            : "⏳";
+
+        message += `${typeIcon} ${tx.type.toUpperCase()} ${status}\n`;
+        message += `Amount: ${tx.fromToken.amount} ${tx.fromToken.symbol}\n`;
+        if (tx.toToken && tx.toToken.symbol !== tx.fromToken.symbol) {
+          message += `To: ${tx.toToken.amount || "N/A"} ${tx.toToken.symbol}\n`;
+        }
+        message += `Date: ${date}\n`;
+        if (tx.txHash) {
+          message += `Hash: ${tx.txHash.substring(0, 10)}...\n`;
+        }
+        message += `\n`;
+      }
+
+      message += `Reply "HISTORY 20" for more transactions\nReply "STATS" for transaction statistics`;
+
+      return {
+        success: true,
+        message,
+      };
+    } catch (error) {
+      console.error("Error handling history command:", error);
+      return {
+        success: false,
+        message: "Error retrieving transaction history. Please try again.",
+      };
+    }
+  }
+
+  private async handleStatsCommand(
+    phoneNumber: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const transactionHistoryService = new TransactionHistoryService();
+      const stats = await transactionHistoryService.getUserTransactionStats(
+        phoneNumber
+      );
+
+      if (!stats) {
+        return {
+          success: true,
+          message:
+            "📊 No transaction statistics available.\n\nStart using SEND, BRIDGE, or SWAP commands to build your transaction history!",
+        };
+      }
+
+      const volumeEntries = Object.entries(stats.totalVolume);
+      const volumeText =
+        volumeEntries.length > 0
+          ? volumeEntries
+              .map(([token, amount]) => `${token}: ${amount}`)
+              .join(", ")
+          : "No volume data";
+
+      const message =
+        `📊 Your Transaction Statistics:\n\n` +
+        `Total Transactions: ${stats.total}\n` +
+        `Successful: ${stats.completed} ✅\n` +
+        `Failed: ${stats.failed} ❌\n` +
+        `Pending: ${stats.pending} ⏳\n\n` +
+        `💰 Volume by Token:\n${volumeText}\n\n` +
+        `Reply "HISTORY" to see recent transactions`;
+
+      return {
+        success: true,
+        message,
+      };
+    } catch (error) {
+      console.error("Error handling stats command:", error);
+      return {
+        success: false,
+        message: "Error retrieving transaction statistics. Please try again.",
+      };
     }
   }
 

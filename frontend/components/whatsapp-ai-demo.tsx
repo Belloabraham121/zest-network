@@ -177,14 +177,14 @@ export function WhatsAppAIDemo() {
   };
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               AI-Powered WhatsApp Experience
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               Chat naturally with our AI assistant - no commands, no complexity,
               just conversation
             </p>
@@ -193,7 +193,7 @@ export function WhatsAppAIDemo() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Demo Controls */}
             <div>
-              <h3 className="text-xl font-medium text-slate-800 mb-6">
+              <h3 className="text-xl font-medium text-foreground mb-6">
                 Experience AI Conversations
               </h3>
               <div className="space-y-4">
@@ -204,8 +204,8 @@ export function WhatsAppAIDemo() {
                     disabled={isPlaying}
                     className={`w-full justify-start p-4 h-auto ${
                       currentDemo === index && !isPlaying
-                        ? "bg-teal-600 text-white"
-                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-card-foreground border border-border hover:bg-muted"
                     }`}>
                     <div className="text-left">
                       <div className="font-medium">{scenario.title}</div>
@@ -224,31 +224,31 @@ export function WhatsAppAIDemo() {
                 ))}
               </div>
 
-              <div className="mt-8 p-6 bg-slate-50 rounded-lg border border-slate-200">
-                <h4 className="font-medium text-slate-800 mb-4 flex items-center">
-                  <MessageCircle className="w-5 h-5 mr-2 text-teal-600" />
+              <div className="mt-8 p-6 bg-muted rounded-lg border border-border">
+                <h4 className="font-medium text-foreground mb-4 flex items-center">
+                  <MessageCircle className="w-5 h-5 mr-2 text-primary" />
                   AI Features in WhatsApp
                 </h4>
-                <ul className="space-y-2 text-sm text-slate-600">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Natural language understanding - chat like you normally
                     would
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Voice message support in 12+ languages
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Smart security alerts and fraud detection
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Personalized insights and recommendations
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     24/7 availability with instant responses
                   </li>
                 </ul>
@@ -257,33 +257,35 @@ export function WhatsAppAIDemo() {
 
             {/* WhatsApp Interface */}
             <div>
-              <Card className="bg-white shadow-2xl border border-slate-200">
-                <div className="bg-teal-600 p-4 rounded-t-lg">
+              <Card className="bg-card shadow-2xl border border-border">
+                <div className="bg-primary dark:bg-slate-800 p-4 rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
-                        <MessageCircle className="w-6 h-6 text-teal-600" />
+                      <div className="w-10 h-10 bg-primary-foreground dark:bg-white rounded-full flex items-center justify-center mr-3">
+                        <MessageCircle className="w-6 h-6 text-primary dark:text-slate-800" />
                       </div>
                       <div>
-                        <div className="font-medium text-white">Zest AI</div>
-                        <div className="text-xs text-teal-100">
+                        <div className="font-medium text-primary-foreground dark:text-white">
+                          Zest AI
+                        </div>
+                        <div className="text-xs text-primary-foreground/80 dark:text-white/80">
                           Online • AI Assistant
                         </div>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <button className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <Camera className="w-4 h-4 text-white" />
+                      <button className="w-8 h-8 bg-primary-foreground/20 dark:bg-white/20 rounded-full flex items-center justify-center">
+                        <Camera className="w-4 h-4 text-primary-foreground dark:text-white" />
                       </button>
-                      <button className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <Mic className="w-4 h-4 text-white" />
+                      <button className="w-8 h-8 bg-primary-foreground/20 dark:bg-white/20 rounded-full flex items-center justify-center">
+                        <Mic className="w-4 h-4 text-primary-foreground dark:text-white" />
                       </button>
                     </div>
                   </div>
                 </div>
 
                 <CardContent className="p-0">
-                  <div className="h-96 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                  <div className="h-96 overflow-y-auto p-4 space-y-4 bg-muted">
                     {messages.map((message) => (
                       <div
                         key={message.id}
@@ -293,10 +295,10 @@ export function WhatsAppAIDemo() {
                         <div
                           className={`max-w-[85%] p-3 rounded-lg ${
                             message.isUser
-                              ? "bg-teal-600 text-white rounded-br-sm"
+                              ? "bg-primary text-primary-foreground rounded-br-sm"
                               : message.isTyping
-                              ? "bg-slate-300 text-slate-600 animate-pulse"
-                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-sm"
+                              ? "bg-muted text-muted-foreground animate-pulse"
+                              : "bg-card text-card-foreground border border-border rounded-bl-sm"
                           }`}>
                           <p className="text-sm whitespace-pre-line">
                             {message.text}
@@ -318,7 +320,7 @@ export function WhatsAppAIDemo() {
 
                     {isPlaying && (
                       <div className="flex justify-center">
-                        <div className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-full text-sm animate-pulse">
+                        <div className="bg-card border border-border text-card-foreground px-4 py-2 rounded-full text-sm animate-pulse">
                           AI Demo in progress...
                         </div>
                       </div>
@@ -326,21 +328,21 @@ export function WhatsAppAIDemo() {
                   </div>
 
                   {/* WhatsApp Input Bar */}
-                  <div className="border-t border-slate-200 p-4 bg-white">
+                  <div className="border-t border-border p-4 bg-card">
                     <div className="flex items-center space-x-2">
-                      <button className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                        <Paperclip className="w-4 h-4 text-slate-600" />
+                      <button className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <Paperclip className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <div className="flex-1 bg-slate-100 rounded-full px-4 py-2">
-                        <span className="text-slate-500 text-sm">
+                      <div className="flex-1 bg-muted rounded-full px-4 py-2">
+                        <span className="text-muted-foreground text-sm">
                           Type a message...
                         </span>
                       </div>
-                      <button className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                        <Mic className="w-4 h-4 text-slate-600" />
+                      <button className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <Mic className="w-4 h-4 text-muted-foreground" />
                       </button>
-                      <button className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
-                        <Send className="w-4 h-4 text-white" />
+                      <button className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <Send className="w-4 h-4 text-primary-foreground" />
                       </button>
                     </div>
                   </div>
@@ -348,13 +350,16 @@ export function WhatsAppAIDemo() {
               </Card>
 
               <div className="mt-4 text-center">
-                <p className="text-sm text-slate-600 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Ready to chat with Zest AI?
                 </p>
                 <Button
-                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() =>
-                    window.open("https://wa.me/+1415523-8886?text=HELP", "_blank")
+                    window.open(
+                      "https://wa.me/+1415523-8886?text=HELP",
+                      "_blank"
+                    )
                   }>
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Start WhatsApp Chat

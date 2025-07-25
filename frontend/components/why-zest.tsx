@@ -39,43 +39,43 @@ export function WhyZest() {
       icon: Users,
       title: "For everyone",
       description: "Works on any phone, with or without internet access.",
-      color: "text-blue-700 bg-blue-50",
-      gradient: "from-blue-50 to-blue-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
     {
       icon: Smartphone,
       title: "Simple to use",
       description: "No apps to download, no seed phrases to remember.",
-      color: "text-teal-700 bg-teal-50",
-      gradient: "from-teal-50 to-teal-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
     {
       icon: Shield,
       title: "Secure",
       description: "Bank-level security with your phone number as your key.",
-      color: "text-indigo-700 bg-indigo-50",
-      gradient: "from-indigo-50 to-indigo-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
     {
       icon: Zap,
       title: "Fast & cheap",
       description: "Low fees and quick transactions on Mantle blockchain.",
-      color: "text-amber-700 bg-amber-50",
-      gradient: "from-amber-50 to-amber-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
     {
       icon: Globe,
       title: "Built for Africa & LATAM",
       description: "Designed for emerging markets and local needs.",
-      color: "text-emerald-700 bg-emerald-50",
-      gradient: "from-emerald-50 to-emerald-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
     {
       icon: Heart,
       title: "Financial inclusion",
       description: "Bringing crypto to the unbanked and underbanked.",
-      color: "text-rose-700 bg-rose-50",
-      gradient: "from-rose-50 to-rose-100",
+      color: "text-primary bg-primary/10",
+      gradient: "from-primary/10 to-primary/20",
     },
   ];
 
@@ -83,13 +83,13 @@ export function WhyZest() {
     <section
       ref={sectionRef}
       id="features"
-      className="py-16 bg-white relative overflow-hidden">
+      className="py-16 bg-background relative overflow-hidden">
       {/* Floating background elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-2 h-2 bg-teal-300 rounded-full animate-float-1"></div>
-        <div className="absolute top-40 right-20 w-3 h-3 bg-slate-300 rounded-full animate-float-2"></div>
-        <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-blue-300 rounded-full animate-float-3"></div>
-        <div className="absolute bottom-40 right-1/3 w-4 h-4 bg-amber-300 rounded-full animate-float-1"></div>
+        <div className="absolute top-20 left-10 w-2 h-2 bg-primary/30 rounded-full animate-float-1"></div>
+        <div className="absolute top-40 right-20 w-3 h-3 bg-muted-foreground/30 rounded-full animate-float-2"></div>
+        <div className="absolute bottom-20 left-1/4 w-2 h-2 bg-primary/30 rounded-full animate-float-3"></div>
+        <div className="absolute bottom-40 right-1/3 w-4 h-4 bg-primary/30 rounded-full animate-float-1"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -100,7 +100,7 @@ export function WhyZest() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               Why choose Zest
             </h2>
           </div>
@@ -120,7 +120,7 @@ export function WhyZest() {
                 }}
                 onMouseMove={(e) => handleMouseMove(e)}
                 onMouseLeave={() => setMousePosition({ x: 0, y: 0 })}>
-                <div className="bg-white p-8 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-4 hover:rotate-1 group-hover:scale-105 relative overflow-hidden">
+                <div className="bg-card p-8 rounded-2xl border border-border hover:border-border/80 transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-4 hover:rotate-1 group-hover:scale-105 relative overflow-hidden">
                   {/* Animated background */}
                   <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
@@ -136,20 +136,20 @@ export function WhyZest() {
                     <div
                       className={`w-16 h-16 ${benefit.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 relative overflow-hidden`}>
                       <benefit.icon className="w-8 h-8 relative z-10" />
-                      <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-background opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
                     </div>
 
-                    <h3 className="text-lg font-medium text-slate-800 mb-3 group-hover:text-slate-900 transition-colors duration-200">
+                    <h3 className="text-lg font-medium text-foreground mb-3 group-hover:text-foreground transition-colors duration-200">
                       {benefit.title}
                     </h3>
 
-                    <p className="text-slate-600 text-sm leading-relaxed group-hover:text-slate-700 transition-colors duration-200">
+                    <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground transition-colors duration-200">
                       {benefit.description}
                     </p>
                   </div>
 
                   {/* Hover glow effect */}
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full animate-shimmer"></div>
+                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-background to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full animate-shimmer"></div>
                 </div>
               </div>
             ))}

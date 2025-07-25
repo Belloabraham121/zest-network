@@ -45,7 +45,7 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section id="home" className="pt-24 pb-16 bg-slate-50 overflow-hidden">
+    <section id="home" className="pt-24 pb-16 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div
@@ -54,14 +54,14 @@ export function HeroSection() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-slate-800 leading-tight mb-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground leading-tight mb-8">
               <span className="inline-block">
                 {typewriterText}
                 {showCursor && <span className="animate-pulse">|</span>}
               </span>
               <br />
               <span
-                className="font-medium text-teal-700 animate-fade-in-up"
+                className="font-medium text-primary animate-fade-in-up"
                 style={{ animationDelay: "3s", animationFillMode: "both" }}>
                 AI-powered crypto on WhatsApp.
               </span>
@@ -74,7 +74,7 @@ export function HeroSection() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
               Send, stake, swap, and bridge crypto across 20+ blockchains using
               WhatsApp, SMS, or any phone. AI-powered assistance makes
               cross-chain DeFi simple for everyone.
@@ -90,7 +90,7 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Button
                 size="lg"
-                className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-pulse-subtle"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-pulse-subtle"
                 onClick={() =>
                   window.open("https://wa.me/+14155238886?text=Help", "_blank")
                 }>
@@ -101,7 +101,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-slate-300 text-slate-700 hover:bg-slate-100 px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:scale-105">
+                className="border-border text-foreground hover:bg-muted px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:scale-105">
                 <Phone className="w-4 h-4 mr-2 animate-wiggle" />
                 Or dial *777#
               </Button>
@@ -109,7 +109,7 @@ export function HeroSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-teal-300 text-teal-700 hover:bg-teal-50 px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+                className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Text SMS
               </Button>
@@ -124,17 +124,17 @@ export function HeroSection() {
                 : "opacity-0 translate-y-8"
             }`}>
             <div className="max-w-sm mx-auto">
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-float">
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <div className="flex items-center mb-4 pb-3 border-b border-slate-200">
-                    <div className="w-8 h-8 bg-teal-100 rounded-full mr-3 flex items-center justify-center animate-pulse-ring">
-                      <div className="w-4 h-4 bg-teal-600 rounded-full"></div>
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-float">
+                <div className="bg-muted rounded-xl p-4">
+                  <div className="flex items-center mb-4 pb-3 border-b border-border">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full mr-3 flex items-center justify-center animate-pulse-ring">
+                      <div className="w-4 h-4 bg-primary rounded-full"></div>
                     </div>
                     <div>
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-foreground">
                         Zest AI
                       </span>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         Online • AI Assistant
                       </div>
                     </div>
@@ -142,16 +142,16 @@ export function HeroSection() {
 
                   <div className="space-y-3 text-sm">
                     <div
-                      className={`bg-white rounded-lg p-3 text-left border border-slate-200 transition-all duration-500 ${
+                      className={`bg-card rounded-lg p-3 text-left border border-border transition-all duration-500 ${
                         chatMessages.includes(1)
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
                       }`}>
-                      <p className="text-slate-700">Swap 100 USDC to SOL</p>
+                      <p className="text-foreground">Swap 100 USDC to SOL</p>
                     </div>
 
                     <div
-                      className={`bg-slate-800 text-white rounded-lg p-3 text-left transition-all duration-500 delay-300 ${
+                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-300 ${
                         chatMessages.includes(2)
                           ? "opacity-100 translate-x-0 scale-100"
                           : "opacity-0 translate-x-4 scale-95"
@@ -159,22 +159,22 @@ export function HeroSection() {
                       <p className="animate-type-in">
                         I&apos;ll swap 100 USDC to SOL! 🔄
                       </p>
-                      <p className="text-slate-300 text-xs mt-1">
+                      <p className="text-primary-foreground/70 text-xs mt-1">
                         Best rate: 1 SOL = $142.50
                       </p>
                     </div>
 
                     <div
-                      className={`bg-white rounded-lg p-3 text-left border border-slate-200 transition-all duration-500 delay-500 ${
+                      className={`bg-card rounded-lg p-3 text-left border border-border transition-all duration-500 delay-500 ${
                         chatMessages.includes(3)
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
                       }`}>
-                      <p className="text-slate-700">Yes, do it</p>
+                      <p className="text-foreground">Yes, do it</p>
                     </div>
 
                     <div
-                      className={`bg-slate-800 text-white rounded-lg p-3 text-left transition-all duration-500 delay-700 ${
+                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-700 ${
                         chatMessages.includes(4)
                           ? "opacity-100 translate-x-0 scale-100"
                           : "opacity-0 translate-x-4 scale-95"
@@ -182,7 +182,7 @@ export function HeroSection() {
                       <p className="animate-type-in">
                         ✅ Swapped! Got 0.702 SOL
                       </p>
-                      <p className="text-slate-300 text-xs mt-1">
+                      <p className="text-primary-foreground/70 text-xs mt-1">
                         Via LiFi • Fee: $0.15
                       </p>
                     </div>

@@ -113,14 +113,14 @@ export function SMSDemo() {
   };
 
   return (
-    <section className="py-16 bg-slate-50">
+    <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               SMS in Action
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               See how easy it is to manage crypto through simple text messages
             </p>
           </div>
@@ -128,7 +128,7 @@ export function SMSDemo() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Demo Controls */}
             <div>
-              <h3 className="text-xl font-medium text-slate-800 mb-6">
+              <h3 className="text-xl font-medium text-foreground mb-6">
                 Try a Demo Scenario
               </h3>
               <div className="space-y-4">
@@ -139,8 +139,8 @@ export function SMSDemo() {
                     disabled={isPlaying}
                     className={`w-full justify-start p-4 h-auto ${
                       currentDemo === index && !isPlaying
-                        ? "bg-teal-600 text-white"
-                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-card-foreground border border-border hover:bg-muted"
                     }`}>
                     <div className="text-left">
                       <div className="font-medium">{scenario.title}</div>
@@ -157,30 +157,30 @@ export function SMSDemo() {
                 ))}
               </div>
 
-              <div className="mt-8 p-6 bg-white rounded-lg border border-slate-200">
-                <h4 className="font-medium text-slate-800 mb-4 flex items-center">
-                  <MessageSquare className="w-5 h-5 mr-2 text-teal-600" />
+              <div className="mt-8 p-6 bg-card rounded-lg border border-border">
+                <h4 className="font-medium text-foreground mb-4 flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-2 text-primary" />
                   SMS Features
                 </h4>
-                <ul className="space-y-2 text-sm text-slate-600">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Works on any phone - no smartphone required
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     No internet connection needed
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     AI-powered responses understand natural language
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Instant confirmations and transaction updates
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-teal-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     24/7 support through text commands
                   </li>
                 </ul>
@@ -189,8 +189,8 @@ export function SMSDemo() {
 
             {/* SMS Interface */}
             <div>
-              <Card className="bg-slate-800 text-white shadow-2xl">
-                <div className="bg-slate-700 p-4 rounded-t-lg">
+              <Card className="bg-card text-card-foreground shadow-2xl border border-border">
+                <div className="bg-muted p-4 rounded-t-lg">
                   <div className="flex items-center">
                     <Smartphone className="w-5 h-5 mr-3" />
                     <div>
@@ -213,8 +213,8 @@ export function SMSDemo() {
                         <div
                           className={`max-w-[85%] p-3 rounded-lg ${
                             message.isUser
-                              ? "bg-teal-600 text-white"
-                              : "bg-slate-600 text-slate-100"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
                           }`}>
                           <p className="text-sm whitespace-pre-line">
                             {message.text}
@@ -240,7 +240,7 @@ export function SMSDemo() {
 
                     {isPlaying && (
                       <div className="flex justify-center">
-                        <div className="bg-slate-600 text-slate-300 px-4 py-2 rounded-full text-sm animate-pulse">
+                        <div className="bg-muted text-muted-foreground px-4 py-2 rounded-full text-sm animate-pulse">
                           Demo in progress...
                         </div>
                       </div>
@@ -250,10 +250,10 @@ export function SMSDemo() {
               </Card>
 
               <div className="mt-4 text-center">
-                <p className="text-sm text-slate-600 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Ready to try SMS crypto?
                 </p>
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Send className="w-4 h-4 mr-2" />
                   Text START to +1-555-ZEST
                 </Button>

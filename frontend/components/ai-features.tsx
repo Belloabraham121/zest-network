@@ -104,12 +104,12 @@ export function AIFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-slate-50 relative overflow-hidden">
+      className="py-16 bg-muted/30 relative overflow-hidden">
       {/* WhatsApp-themed background */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-32 h-32 border border-green-300 rounded-full animate-spin-slow"></div>
-        <div className="absolute bottom-20 right-10 w-24 h-24 border border-green-300 rounded-full animate-spin-slow-reverse"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-green-300 rounded-full animate-pulse-slow"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 border border-primary rounded-full animate-spin-slow"></div>
+        <div className="absolute bottom-20 right-10 w-24 h-24 border border-primary rounded-full animate-spin-slow-reverse"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-primary rounded-full animate-pulse-slow"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -121,14 +121,14 @@ export function AIFeatures() {
                 : "opacity-0 translate-y-8"
             }`}>
             <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center animate-pulse-gentle">
-                <MessageCircle className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center animate-pulse-gentle">
+                <MessageCircle className="w-8 h-8 text-primary-foreground" />
               </div>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               AI Built for WhatsApp
             </h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Our AI assistant lives inside WhatsApp, understanding natural
               conversation and making crypto as easy as texting a friend.
             </p>
@@ -152,8 +152,8 @@ export function AIFeatures() {
                   <Card
                     className={`border-2 transition-all duration-300 ${
                       activeFeature === index
-                        ? "border-green-300 shadow-lg bg-green-50"
-                        : "border-slate-200 hover:border-slate-300 hover:shadow-md bg-white"
+                        ? "border-primary shadow-lg bg-primary/10"
+                        : "border-border hover:border-border/80 hover:shadow-md bg-card"
                     }`}>
                     <CardContent className="p-6">
                       <div className="flex items-start">
@@ -166,10 +166,10 @@ export function AIFeatures() {
                           <feature.icon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-slate-800 mb-2">
+                          <h3 className="text-lg font-medium text-foreground mb-2">
                             {feature.title}
                           </h3>
-                          <p className="text-slate-600 text-sm leading-relaxed">
+                          <p className="text-muted-foreground text-sm leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -187,34 +187,36 @@ export function AIFeatures() {
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-8"
               }`}>
-              <Card className="bg-white shadow-2xl border border-slate-200">
-                <div className="bg-green-600 p-4 rounded-t-lg">
+              <Card className="bg-card shadow-2xl border border-border">
+                <div className="bg-primary p-4 rounded-t-lg">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 animate-pulse-ring">
-                      <Bot className="w-6 h-6 text-green-600" />
+                    <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center mr-3 animate-pulse-ring">
+                      <Bot className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <div className="font-medium text-white">Zest AI</div>
-                      <div className="text-xs text-green-100">
+                      <div className="font-medium text-primary-foreground">
+                        Zest AI
+                      </div>
+                      <div className="text-xs text-primary-foreground/80">
                         Online • Your crypto assistant
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <CardContent className="p-6 bg-slate-50">
+                <CardContent className="p-6 bg-muted">
                   <div className="mb-4">
-                    <h4 className="font-medium mb-2 text-green-700">
+                    <h4 className="font-medium mb-2 text-primary">
                       {aiFeatures[activeFeature].title}
                     </h4>
-                    <div className="bg-white rounded-lg p-4 border border-slate-200">
-                      <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans">
+                    <div className="bg-card rounded-lg p-4 border border-border">
+                      <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">
                         {aiFeatures[activeFeature].example}
                       </pre>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>✓✓ Delivered • AI Response: &lt;100ms</span>
                     <div className="flex items-center">
                       <Volume2 className="w-3 h-3 mr-1" />
@@ -228,9 +230,7 @@ export function AIFeatures() {
                       <div
                         key={index}
                         className={`h-1 flex-1 rounded transition-all duration-300 ${
-                          index === activeFeature
-                            ? "bg-green-500"
-                            : "bg-slate-300"
+                          index === activeFeature ? "bg-primary" : "bg-muted"
                         }`}
                       />
                     ))}
@@ -247,11 +247,13 @@ export function AIFeatures() {
                 ].map((stat, index) => (
                   <div
                     key={index}
-                    className="text-center p-4 bg-white rounded-lg border border-slate-200 shadow-sm">
-                    <div className="text-2xl font-light text-slate-800">
+                    className="text-center p-4 bg-card rounded-lg border border-border shadow-sm">
+                    <div className="text-2xl font-light text-foreground">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-slate-600">{stat.label}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {stat.label}
+                    </div>
                   </div>
                 ))}
               </div>

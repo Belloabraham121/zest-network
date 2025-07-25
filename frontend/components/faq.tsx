@@ -87,7 +87,7 @@ export function FAQ() {
   ];
 
   return (
-    <section ref={sectionRef} id="faq" className="py-16 bg-white">
+    <section ref={sectionRef} id="faq" className="py-16 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div
@@ -96,7 +96,7 @@ export function FAQ() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               Common questions
             </h2>
           </div>
@@ -108,23 +108,23 @@ export function FAQ() {
               return (
                 <div
                   key={index}
-                  className={`bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-md ${
+                  className={`bg-card rounded-lg border border-border hover:border-border/80 transition-all duration-300 hover:shadow-md ${
                     isVisible
                       ? "opacity-100 translate-y-0"
                       : "opacity-0 translate-y-8"
                   }`}
                   style={{ transitionDelay: `${index * 100 + 200}ms` }}>
                   <button
-                    className="w-full text-left p-6 flex items-center justify-between hover:bg-slate-100 transition-colors duration-200 rounded-lg"
+                    className="w-full text-left p-6 flex items-center justify-between hover:bg-muted transition-colors duration-200 rounded-lg"
                     onClick={() => toggleItem(index)}>
-                    <span className="font-medium text-slate-800 pr-4">
+                    <span className="font-medium text-foreground pr-4">
                       {faq.q}
                     </span>
                     <div className="flex-shrink-0">
                       {isOpen ? (
-                        <ChevronUp className="w-5 h-5 text-slate-600 transition-transform duration-200" />
+                        <ChevronUp className="w-5 h-5 text-muted-foreground transition-transform duration-200" />
                       ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-600 transition-transform duration-200" />
+                        <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform duration-200" />
                       )}
                     </div>
                   </button>
@@ -134,7 +134,9 @@ export function FAQ() {
                       isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                     }`}>
                     <div className="px-6 pb-6">
-                      <p className="text-slate-600 leading-relaxed">{faq.a}</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {faq.a}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -148,8 +150,8 @@ export function FAQ() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <p className="text-slate-600 mb-4">Still have questions?</p>
-            <button className="text-slate-800 hover:text-teal-700 font-medium transition-colors duration-200 hover:underline">
+            <p className="text-muted-foreground mb-4">Still have questions?</p>
+            <button className="text-foreground hover:text-primary font-medium transition-colors duration-200 hover:underline">
               Contact support
             </button>
           </div>

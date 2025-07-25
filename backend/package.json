@@ -16,6 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@lifi/sdk": "^3.0.0",
     "@types/qrcode": "^1.5.5",
     "bip39": "^3.1.0",
     "dotenv": "^17.2.0",

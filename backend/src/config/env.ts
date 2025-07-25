@@ -17,4 +17,13 @@ export const env = {
   ENCRYPTION_SECRET_KEY: process.env.ENCRYPTION_SECRET_KEY!, // 32-byte key for AES-256-GCM encryption
   USDC_ADDRESS: process.env.USDC_ADDRESS!, // Mantle USDC contract address
   ESCROW_ADDRESS: process.env.ESCROW_ADDRESS!, // Deployed escrow contract
+  // LI.FI Configuration
+  LIFI_API_URL: process.env.LIFI_API_URL || "https://li.quest/v1",
+  LIFI_INTEGRATOR: process.env.LIFI_INTEGRATOR || "zest-network",
+  LIFI_API_KEY: process.env.LIFI_API_KEY,
+  LIFI_SLIPPAGE_TOLERANCE: parseFloat(
+    process.env.LIFI_SLIPPAGE_TOLERANCE || "0.03"
+  ),
+  LIFI_ENABLE_SIMULATION: process.env.LIFI_ENABLE_SIMULATION === "true",
+  LIFI_CACHE_TTL: parseInt(process.env.LIFI_CACHE_TTL || "300"),
 };

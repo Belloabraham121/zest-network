@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { walletService } from "../services/wallet.service";
 import { rateLimiterService } from "../services/rate-limiter.service";
+import { lifiQuoteManager } from "../services/lifi-quote-manager.service";
+import { lifiCrossChainExecutor } from "../services/lifi-cross-chain-executor.service";
+import { lifiChainManager } from "../services/lifi-chain-manager.service";
+import { lifiService } from "../services/lifi.service";
 import { WhatsappPayload } from "../types";
 import { env } from "../config/env";
 import { getSupportedTokenSymbols, isTokenSupported } from "../config/tokens";
@@ -116,6 +120,23 @@ export class WebhooksController {
           response = await this.handleSendCommand(phoneNumber, args);
           break;
 
+        case "BRIDGE":
+        case "CROSSCHAIN":
+          response = await this.handleBridgeCommand(phoneNumber, args);
+          break;
+
+        case "SWAP":
+          response = await this.handleSwapCommand(phoneNumber, args);
+          break;
+
+        case "QUOTE":
+          response = await this.handleQuoteCommand(phoneNumber, args);
+          break;
+
+        case "CHAINS":
+          response = await this.handleChainsCommand();
+          break;
+
         case "HELP":
         case "COMMANDS":
           response = this.handleHelpCommand();
@@ -142,7 +163,7 @@ export class WebhooksController {
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, HELP",
+              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HELP",
           };
       }
 
@@ -252,6 +273,23 @@ export class WebhooksController {
           response = await this.handleSendCommand(phoneNumber, args);
           break;
 
+        case "BRIDGE":
+        case "CROSSCHAIN":
+          response = await this.handleBridgeCommand(phoneNumber, args);
+          break;
+
+        case "SWAP":
+          response = await this.handleSwapCommand(phoneNumber, args);
+          break;
+
+        case "QUOTE":
+          response = await this.handleQuoteCommand(phoneNumber, args);
+          break;
+
+        case "CHAINS":
+          response = await this.handleChainsCommand();
+          break;
+
         case "HELP":
         case "COMMANDS":
           response = this.handleHelpCommand();
@@ -261,7 +299,7 @@ export class WebhooksController {
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, HELP",
+              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HELP",
           };
       }
 
@@ -551,6 +589,7 @@ export class WebhooksController {
     
     const helpMessage =
       `🔹 Zest Wallet Commands:\n\n` +
+      `📱 Basic Commands:\n` +
       `CREATE - Create a new wallet\n` +
       `BALANCE - Check wallet balance\n` +
       `ADDRESS - Get wallet address\n` +
@@ -558,9 +597,18 @@ export class WebhooksController {
       `SEND - Transfer tokens\n` +
       `TOKENS - List supported tokens\n` +
       `HELP - Show this help\n\n` +
+      `🌉 Cross-Chain Commands:\n` +
+      `BRIDGE - Bridge tokens between chains\n` +
+      `SWAP - Swap tokens on same chain\n` +
+      `QUOTE - Get price quotes\n` +
+      `CHAINS - List supported chains\n\n` +
       `💸 Transfer Examples:\n` +
       `SEND 10 ${primaryToken} +1234567890\n` +
       `SEND 0.5 ${primaryToken} 0x123...\n\n` +
+      `🌉 Cross-Chain Examples:\n` +
+      `BRIDGE 10 USDC ethereum polygon 0x123...\n` +
+      `SWAP 100 USDC ETH\n` +
+      `QUOTE 0.5 ETH USDC ethereum arbitrum\n\n` +
       `📋 Supported Tokens: ${supportedTokens.join(", ")}\n\n` +
       `Gas fees paid by Zest! 🚀\n` +
       `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})`;
@@ -685,6 +733,292 @@ export class WebhooksController {
         success: false,
         message: "Error retrieving token information.",
       };
+    }
+  }
+
+  private async handleBridgeCommand(
+    phoneNumber: string,
+    args: string[]
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      if (args.length < 5) {
+        return {
+          success: false,
+          message:
+            "Invalid BRIDGE format. Use:\n\n" +
+            "BRIDGE <amount> <token> <fromChain> <toChain> <toAddress>\n\n" +
+            "Examples:\n" +
+            "BRIDGE 10 USDC ethereum polygon 0x123...\n" +
+            "BRIDGE 0.5 ETH ethereum arbitrum +1234567890\n\n" +
+            "Use CHAINS to see supported chains",
+        };
+      }
+
+      const [amountStr, token, fromChain, toChain, toAddress] = args;
+      const amount = amountStr.replace(/,/g, "");
+
+      // Get user's wallet
+      const wallet = await walletService.getWallet(phoneNumber);
+      if (!wallet) {
+        return {
+          success: false,
+          message: "No wallet found. Reply CREATE to create a new wallet.",
+        };
+      }
+
+      // Get chain IDs
+      const chains = await lifiChainManager.getSupportedChains();
+      const fromChainData = chains.find(c => c.name.toLowerCase() === fromChain.toLowerCase() || c.key.toLowerCase() === fromChain.toLowerCase());
+      const toChainData = chains.find(c => c.name.toLowerCase() === toChain.toLowerCase() || c.key.toLowerCase() === toChain.toLowerCase());
+
+      if (!fromChainData || !toChainData) {
+        return {
+          success: false,
+          message: `Invalid chain. Use CHAINS to see supported chains.`,
+        };
+      }
+
+      // Resolve destination address
+      const resolvedToAddress = toAddress.startsWith("+") ? await this.resolvePhoneToAddress(toAddress) : toAddress;
+
+      // Get quote first
+      const quoteRequest = {
+        fromChain: fromChainData.id,
+        toChain: toChainData.id,
+        fromToken: token.toUpperCase(),
+        toToken: token.toUpperCase(),
+        fromAmount: amount,
+        fromAddress: wallet.address,
+        toAddress: resolvedToAddress
+      };
+
+      const quote = await lifiQuoteManager.getQuote(quoteRequest);
+
+       return {
+         success: true,
+         message:
+           `🌉 Bridge Quote Ready!\n\n` +
+           `From: ${amount} ${token} on ${fromChainData.name}\n` +
+           `To: ~${quote.estimate?.toAmount || 'N/A'} ${token} on ${toChainData.name}\n` +
+           `Estimated Time: ${Math.round((quote.estimate?.executionDuration || 0) / 60)} min\n` +
+           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n\n` +
+           `⚠️ Cross-chain bridging is complex. This is a quote only.\n` +
+           `For execution, use our web interface.`,
+       };
+    } catch (error) {
+      console.error("Error handling bridge command:", error);
+      return {
+        success: false,
+        message: "Error processing bridge request. Please try again later.",
+      };
+    }
+  }
+
+  private async handleSwapCommand(
+    phoneNumber: string,
+    args: string[]
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      if (args.length < 3) {
+        return {
+          success: false,
+          message:
+            "Invalid SWAP format. Use:\n\n" +
+            "SWAP <amount> <fromToken> <toToken> [chain]\n\n" +
+            "Examples:\n" +
+            "SWAP 100 USDC ETH\n" +
+            "SWAP 0.5 ETH USDC ethereum\n\n" +
+            "Default chain: Current wallet chain",
+        };
+      }
+
+      const [amountStr, fromToken, toToken, chain] = args;
+      const amount = amountStr.replace(/,/g, "");
+
+      // Get user's wallet
+      const wallet = await walletService.getWallet(phoneNumber);
+      if (!wallet) {
+        return {
+          success: false,
+          message: "No wallet found. Reply CREATE to create a new wallet.",
+        };
+      }
+
+      // Default to Mantle chain or specified chain
+       let chainId = env.MANTLE_CHAIN_ID;
+       if (chain) {
+         const chains = await lifiChainManager.getSupportedChains();
+         const chainData = chains.find(c => c.name.toLowerCase() === chain.toLowerCase() || c.key.toLowerCase() === chain.toLowerCase());
+         if (chainData) {
+           chainId = chainData.id;
+         }
+       }
+
+       // Get quote
+       const quoteRequest = {
+         fromChain: chainId,
+         toChain: chainId,
+         fromToken: fromToken.toUpperCase(),
+         toToken: toToken.toUpperCase(),
+         fromAmount: amount,
+         fromAddress: wallet.address
+       };
+
+       const quote = await lifiQuoteManager.getQuote(quoteRequest);
+
+       const exchangeRate = quote.estimate?.toAmount && quote.estimate?.fromAmount 
+         ? (parseFloat(quote.estimate.toAmount) / parseFloat(quote.estimate.fromAmount)).toFixed(4)
+         : 'N/A';
+
+       return {
+         success: true,
+         message:
+           `🔄 Swap Quote Ready!\n\n` +
+           `From: ${amount} ${fromToken.toUpperCase()}\n` +
+           `To: ~${quote.estimate?.toAmount || 'N/A'} ${toToken.toUpperCase()}\n` +
+           `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n\n` +
+           `⚠️ This is a quote only. For execution, use our web interface.`,
+       };
+    } catch (error) {
+      console.error("Error handling swap command:", error);
+      return {
+        success: false,
+        message: "Error processing swap request. Please try again later.",
+      };
+    }
+  }
+
+  private async handleQuoteCommand(
+    phoneNumber: string,
+    args: string[]
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      if (args.length < 3) {
+        return {
+          success: false,
+          message:
+            "Invalid QUOTE format. Use:\n\n" +
+            "QUOTE <amount> <fromToken> <toToken> [fromChain] [toChain]\n\n" +
+            "Examples:\n" +
+            "QUOTE 100 USDC ETH\n" +
+            "QUOTE 10 ETH USDC ethereum polygon\n\n" +
+            "For same-chain swaps, omit chain parameters",
+        };
+      }
+
+      const [amountStr, fromToken, toToken, fromChain, toChain] = args;
+      const amount = amountStr.replace(/,/g, "");
+
+      // Get user's wallet
+      const wallet = await walletService.getWallet(phoneNumber);
+      if (!wallet) {
+        return {
+          success: false,
+          message: "No wallet found. Reply CREATE to create a new wallet.",
+        };
+      }
+
+      // Determine chain IDs
+       let fromChainId = env.MANTLE_CHAIN_ID;
+       let toChainId = env.MANTLE_CHAIN_ID;
+
+       if (fromChain && toChain) {
+         const chains = await lifiChainManager.getSupportedChains();
+         const fromChainData = chains.find(c => c.name.toLowerCase() === fromChain.toLowerCase() || c.key.toLowerCase() === fromChain.toLowerCase());
+         const toChainData = chains.find(c => c.name.toLowerCase() === toChain.toLowerCase() || c.key.toLowerCase() === toChain.toLowerCase());
+         
+         if (fromChainData) fromChainId = fromChainData.id;
+         if (toChainData) toChainId = toChainData.id;
+       }
+
+       // Get quote
+       const quoteRequest = {
+         fromChain: fromChainId,
+         toChain: toChainId,
+         fromToken: fromToken.toUpperCase(),
+         toToken: toToken.toUpperCase(),
+         fromAmount: amount,
+         fromAddress: wallet.address
+       };
+
+       const quote = await lifiQuoteManager.getQuote(quoteRequest);
+
+       const isCrossChain = fromChainId !== toChainId;
+       const typeIcon = isCrossChain ? "🌉" : "🔄";
+       const typeText = isCrossChain ? "Cross-Chain" : "Swap";
+       
+       const exchangeRate = quote.estimate?.toAmount && quote.estimate?.fromAmount 
+         ? (parseFloat(quote.estimate.toAmount) / parseFloat(quote.estimate.fromAmount)).toFixed(4)
+         : 'N/A';
+
+       return {
+         success: true,
+         message:
+           `${typeIcon} ${typeText} Quote\n\n` +
+           `From: ${amount} ${fromToken.toUpperCase()}\n` +
+           `To: ~${quote.estimate?.toAmount || 'N/A'} ${toToken.toUpperCase()}\n` +
+           `${isCrossChain ? `From Chain: ${fromChain || 'Mantle'}\nTo Chain: ${toChain || 'Mantle'}\n` : ''}` +
+           `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+           `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || 'N/A'}\n` +
+           `${isCrossChain ? `Estimated Time: ${Math.round((quote.estimate?.executionDuration || 0) / 60)} min\n` : ''}\n` +
+           `⚠️ Quote only. Use web interface for execution.`,
+       };
+    } catch (error) {
+      console.error("Error handling quote command:", error);
+      return {
+        success: false,
+        message: "Error getting quote. Please try again later.",
+      };
+    }
+  }
+
+  private async handleChainsCommand(): Promise<{ success: boolean; message: string }> {
+    try {
+      const chains = await lifiChainManager.getSupportedChains();
+      
+      if (!chains || chains.length === 0) {
+        return {
+          success: false,
+          message: "No supported chains found.",
+        };
+      }
+
+      let message = "🔗 Supported Chains:\n\n";
+      
+      // Show top 10 most popular chains
+      const popularChains = chains.slice(0, 10);
+      
+      for (const chain of popularChains) {
+        message += `• ${chain.name} (${chain.key})\n`;
+        message += `  Chain ID: ${chain.id}\n\n`;
+      }
+
+      if (chains.length > 10) {
+        message += `... and ${chains.length - 10} more chains\n\n`;
+      }
+
+      message += "Use chain names or keys in BRIDGE/SWAP commands";
+
+      return {
+        success: true,
+        message,
+      };
+    } catch (error) {
+      console.error("Error handling chains command:", error);
+      return {
+        success: false,
+        message: "Error retrieving supported chains.",
+      };
+    }
+  }
+
+  private async resolvePhoneToAddress(phoneNumber: string): Promise<string> {
+    try {
+      const wallet = await walletService.getWallet(phoneNumber);
+      return wallet?.address || phoneNumber;
+    } catch (error) {
+      return phoneNumber;
     }
   }
 

@@ -8,6 +8,7 @@ import walletsRoutes from "./routes/wallets";
 import apiRoutes from "./routes/api.routes";
 import tokensRoutes from "./routes/tokens.routes";
 import rateLimiterRoutes from "./routes/rate-limiter.routes";
+import lifiRoutes from "./routes/lifi.routes";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/webhooks/ussd", ussdRoutes);
 app.use("/api/wallets", walletsRoutes);
 app.use("/api/tokens", tokensRoutes);
 app.use("/api/rate-limiter", rateLimiterRoutes);
+app.use("/api/lifi", lifiRoutes);
 app.use("/api", apiRoutes);
 
 app.get("/health", (req, res) => {
@@ -55,6 +57,7 @@ app.get("/health", (req, res) => {
       directMNT: "/api/transfer/mnt/direct",
       balance: "/api/wallet/balance",
       relayer: "/api/relayer/status",
+      lifi: "/api/lifi",
     },
   });
 });
@@ -85,6 +88,7 @@ app.get("/", (req, res) => {
       directMNT: "/api/transfer/mnt/direct",
       balance: "/api/wallet/balance",
       relayer: "/api/relayer/status",
+      lifi: "/api/lifi",
     },
   });
 });
@@ -106,6 +110,7 @@ app.listen(PORT, () => {
   console.log(`💰 Balance API: http://localhost:${PORT}/api/wallet/balance`);
   console.log(`⛽ Relayer Status: http://localhost:${PORT}/api/relayer/status`);
   console.log(`📊 Rate Limiter API: http://localhost:${PORT}/api/rate-limiter`);
+  console.log(`🌉 LI.FI API: http://localhost:${PORT}/api/lifi`);
   console.log(`❤️ Health check: http://localhost:${PORT}/health`);
 });
 

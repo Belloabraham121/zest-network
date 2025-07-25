@@ -42,3 +42,198 @@ export interface UssdPayload {
   phoneNumber: string; // e.g., "+2348031234567"
   text: string; // e.g., "1*10*08031234567"
 }
+
+// LI.FI Types
+export interface LiFiQuoteRequest {
+  fromChain: string | number;
+  toChain: string | number;
+  fromToken: string;
+  toToken: string;
+  fromAmount: string;
+  fromAddress?: string;
+  toAddress?: string;
+  slippage?: number;
+  allowBridges?: string[];
+  denyBridges?: string[];
+  allowExchanges?: string[];
+  denyExchanges?: string[];
+}
+
+export interface LiFiQuoteResponse {
+  id: string;
+  type: string;
+  tool: string;
+  action: {
+    fromChainId: number;
+    fromAmount: string;
+    fromToken: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      name: string;
+      logoURI?: string;
+    };
+    toChainId: number;
+    toToken: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      name: string;
+      logoURI?: string;
+    };
+    slippage: number;
+  };
+  estimate: {
+    fromAmount: string;
+    toAmount: string;
+    toAmountMin: string;
+    approvalAddress: string;
+    executionDuration: number;
+    feeCosts: Array<{
+      name: string;
+      description: string;
+      token: {
+        address: string;
+        chainId: number;
+        symbol: string;
+        decimals: number;
+        name: string;
+      };
+      amount: string;
+      amountUSD: string;
+      percentage: string;
+      included: boolean;
+    }>;
+    gasCosts: Array<{
+      type: string;
+      price: string;
+      estimate: string;
+      limit: string;
+      amount: string;
+      amountUSD: string;
+      token: {
+        address: string;
+        chainId: number;
+        symbol: string;
+        decimals: number;
+        name: string;
+      };
+    }>;
+  };
+  includedSteps: LiFiStep[];
+  transactionRequest?: {
+    data: string;
+    to: string;
+    value: string;
+    from?: string;
+    chainId: number;
+    gasLimit?: string;
+    gasPrice?: string;
+  };
+}
+
+export interface LiFiStep {
+  id: string;
+  type: string;
+  tool: string;
+  action: {
+    fromChainId: number;
+    fromAmount: string;
+    fromToken: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      name: string;
+    };
+    toChainId: number;
+    toToken: {
+      address: string;
+      chainId: number;
+      symbol: string;
+      decimals: number;
+      name: string;
+    };
+    slippage: number;
+  };
+  estimate: {
+    fromAmount: string;
+    toAmount: string;
+    toAmountMin: string;
+    approvalAddress: string;
+    executionDuration: number;
+  };
+  toolDetails: {
+    key: string;
+    name: string;
+    logoURI: string;
+  };
+}
+
+export interface LiFiExecutionStatus {
+  status: "NOT_FOUND" | "INVALID" | "PENDING" | "DONE" | "FAILED" | "CANCELLED";
+  substatus?: string;
+  substatusMessage?: string;
+  txHash?: string;
+  txLink?: string;
+  fromAmount?: string;
+  toAmount?: string;
+  gasUsed?: string;
+  gasPrice?: string;
+  gasFee?: string;
+  timestamp?: number;
+}
+
+export interface LiFiChain {
+  id: number;
+  key: string;
+  name: string;
+  coin: string;
+  mainnet: boolean;
+  logoURI: string;
+  tokenlistUrl: string;
+  multicallAddress: string;
+  metamask: {
+    chainId: string;
+    blockExplorerUrls: string[];
+    chainName: string;
+    nativeCurrency: {
+      name: string;
+      symbol: string;
+      decimals: number;
+    };
+    rpcUrls: string[];
+  };
+}
+
+export interface LiFiToken {
+  address: string;
+  chainId: number;
+  symbol: string;
+  decimals: number;
+  name: string;
+  logoURI?: string;
+  priceUSD?: string;
+}
+
+export interface CrossChainTransfer {
+  id: string;
+  fromChain: number;
+  toChain: number;
+  fromToken: string;
+  toToken: string;
+  fromAmount: string;
+  toAmount: string;
+  sender: string;
+  recipient: string;
+  status: "pending" | "bridging" | "completed" | "failed";
+  txHash?: string;
+  bridgeTxHash?: string;
+  destinationTxHash?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  estimatedTime?: number;
+  actualTime?: number;
+}

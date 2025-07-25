@@ -19,7 +19,7 @@ export const SUPPORTED_TOKENS: Record<string, TokenConfig> = {
   USDC: {
     symbol: "USDC",
     name: "USD Coin",
-    address: "0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080",
+    address: "0x09bc4e0d864854c6afb6eb9a9cdf58ac190d0df9",
     decimals: 6,
     isNative: false,
     enabled: true,

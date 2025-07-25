@@ -209,7 +209,7 @@ export function WhatsAppCrossChainDemo() {
                     key={index}
                     onClick={() => playDemo(index)}
                     disabled={isPlaying}
-                    className={`w-full justify-start p-4 h-auto ${
+                    className={`w-full justify-start p-4 h-auto cursor-pointer ${
                       currentDemo === index && !isPlaying
                         ? "bg-primary text-primary-foreground"
                         : "bg-card text-card-foreground border border-border hover:bg-muted"

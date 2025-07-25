@@ -117,10 +117,10 @@ export function SMSDemo() {
       {/* Enhanced background effects */}
       <div className="absolute inset-0 bg-gradient-radial from-primary/15 via-transparent to-transparent opacity-50 animate-pulse"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 via-blue-900/5 to-purple-900/5"></div>
-      
+
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -144,7 +144,7 @@ export function SMSDemo() {
                     key={index}
                     onClick={() => playDemo(index)}
                     disabled={isPlaying}
-                    className={`w-full justify-start p-4 h-auto ${
+                    className={`w-full justify-start p-4 h-auto cursor-pointer ${
                       currentDemo === index && !isPlaying
                         ? "bg-primary text-primary-foreground"
                         : "bg-card text-card-foreground border border-border hover:bg-muted"
@@ -228,7 +228,15 @@ export function SMSDemo() {
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-75">
-                              {message.timestamp.getHours().toString().padStart(2, '0')}:{message.timestamp.getMinutes().toString().padStart(2, '0')}
+                              {message.timestamp
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0")}
+                              :
+                              {message.timestamp
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0")}
                             </span>
                             {message.status && (
                               <span className="text-xs opacity-75">

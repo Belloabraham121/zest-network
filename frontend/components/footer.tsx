@@ -34,7 +34,7 @@ export function Footer() {
             <h3 className="font-medium text-foreground mb-4">Get started</h3>
             <div className="space-y-3">
               <button
-                className="flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm group"
+                className="flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm group cursor-pointer"
                 onClick={() =>
                   window.open(
                     "https://wa.me/+1415523-8886?text=START",
@@ -61,17 +61,17 @@ export function Footer() {
             <div className="space-y-2">
               <a
                 href="#"
-                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform">
+                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform cursor-pointer">
                 Privacy Policy
               </a>
               <a
                 href="#"
-                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform">
+                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform cursor-pointer">
                 Terms of Service
               </a>
               <a
                 href="#"
-                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform">
+                className="block text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm hover:translate-x-1 transform cursor-pointer">
                 Support
               </a>
             </div>

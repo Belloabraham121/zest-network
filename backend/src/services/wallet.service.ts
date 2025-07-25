@@ -7,14 +7,14 @@ import { env } from "../config/env";
 import { DatabaseService } from "./database.service";
 import { blockchainService } from "./blockchain.service";
 import { Wallet, Transaction } from "../types";
-import { 
-  addToken, 
-  toggleToken, 
-  getEnabledTokens, 
-  getTokenConfig, 
-  isTokenSupported, 
+import {
+  addToken,
+  toggleToken,
+  getEnabledTokens,
+  getTokenConfig,
+  isTokenSupported,
   getSupportedTokenSymbols,
-  TokenConfig 
+  TokenConfig,
 } from "../config/tokens";
 
 export class WalletService {
@@ -86,7 +86,10 @@ export class WalletService {
   } {
     try {
       const algorithm = "aes-256-gcm";
-      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY.replace('0x', ''), "hex");
+      const secretKey = Buffer.from(
+        env.ENCRYPTION_SECRET_KEY.replace("0x", ""),
+        "hex"
+      );
 
       if (secretKey.length !== 32) {
         throw new Error(
@@ -120,7 +123,10 @@ export class WalletService {
   ): string {
     try {
       const algorithm = "aes-256-gcm";
-      const secretKey = Buffer.from(env.ENCRYPTION_SECRET_KEY.replace('0x', ''), "hex");
+      const secretKey = Buffer.from(
+        env.ENCRYPTION_SECRET_KEY.replace("0x", ""),
+        "hex"
+      );
       const ivBuffer = Buffer.from(iv, "hex");
 
       const decipher = crypto.createDecipheriv(algorithm, secretKey, ivBuffer);
@@ -535,12 +541,26 @@ export class WalletService {
     }
   }
 
+  async getDecryptedPrivateKeyByAddress(address: string): Promise<string | null> {
+    try {
+      const wallet = await this.dbService.getWalletByAddress(address);
+      if (!wallet) return null;
+
+      return this.decryptPrivateKey(
+        wallet.encryptedPrivateKey,
+        wallet.iv,
+        wallet.authTag
+      );
+    } catch (error) {
+      console.error("Error decrypting private key by address:", error);
+      return null;
+    }
+  }
+
   /**
    * Get wallet balances (MNT + USDC)
    */
-  async getWalletBalances(
-    phoneNumber: string
-  ): Promise<{
+  async getWalletBalances(phoneNumber: string): Promise<{
     success: boolean;
     balances?: Record<string, string> & { address: string };
     message?: string;
@@ -552,21 +572,24 @@ export class WalletService {
       if (!wallet) {
         return {
           success: false,
-          message: "No wallet found for this phone number. Reply CREATE to create a wallet."
+          message:
+            "No wallet found for this phone number. Reply CREATE to create a wallet.",
         };
       }
 
-      const balances = await blockchainService.getWalletBalances(wallet.address);
-      
+      const balances = await blockchainService.getWalletBalances(
+        wallet.address
+      );
+
       return {
         success: true,
-        balances
+        balances,
       };
     } catch (error) {
       console.error("Error getting wallet balances:", error);
       return {
         success: false,
-        message: "Failed to get wallet balances. Please try again later."
+        message: "Failed to get wallet balances. Please try again later.",
       };
     }
   }
@@ -587,13 +610,14 @@ export class WalletService {
   }> {
     try {
       const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
-      
+
       // Get sender's wallet
       const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
       if (!senderWallet) {
         return {
           success: false,
-          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+          message:
+            "No wallet found for your phone number. Reply CREATE to create a wallet.",
         };
       }
 
@@ -608,7 +632,7 @@ export class WalletService {
       if (!blockchainService.isValidAddress(recipientAddress)) {
         return {
           success: false,
-          message: "Invalid recipient address. Please check and try again."
+          message: "Invalid recipient address. Please check and try again.",
         };
       }
 
@@ -617,7 +641,7 @@ export class WalletService {
       if (isNaN(amountNum) || amountNum <= 0) {
         return {
           success: false,
-          message: "Invalid amount. Please enter a positive number."
+          message: "Invalid amount. Please enter a positive number.",
         };
       }
 
@@ -635,7 +659,7 @@ export class WalletService {
       console.error("Error transferring MNT:", error);
       return {
         success: false,
-        message: "Failed to transfer MNT. Please try again later."
+        message: "Failed to transfer MNT. Please try again later.",
       };
     }
   }
@@ -656,13 +680,14 @@ export class WalletService {
   }> {
     try {
       const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
-      
+
       // Get sender's wallet
       const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
       if (!senderWallet) {
         return {
           success: false,
-          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+          message:
+            "No wallet found for your phone number. Reply CREATE to create a wallet.",
         };
       }
 
@@ -677,7 +702,7 @@ export class WalletService {
       if (!blockchainService.isValidAddress(recipientAddress)) {
         return {
           success: false,
-          message: "Invalid recipient address. Please check and try again."
+          message: "Invalid recipient address. Please check and try again.",
         };
       }
 
@@ -686,7 +711,7 @@ export class WalletService {
       if (isNaN(amountNum) || amountNum <= 0) {
         return {
           success: false,
-          message: "Invalid amount. Please enter a positive number."
+          message: "Invalid amount. Please enter a positive number.",
         };
       }
 
@@ -705,7 +730,7 @@ export class WalletService {
       console.error("Error transferring USDC:", error);
       return {
         success: false,
-        message: "Failed to transfer USDC. Please try again later."
+        message: "Failed to transfer USDC. Please try again later.",
       };
     }
   }
@@ -727,13 +752,14 @@ export class WalletService {
   }> {
     try {
       const sanitizedSenderPhone = this.sanitizePhoneNumber(senderPhone);
-      
+
       // Get sender's wallet
       const senderWallet = await this.dbService.getWallet(sanitizedSenderPhone);
       if (!senderWallet) {
         return {
           success: false,
-          message: "No wallet found for your phone number. Reply CREATE to create a wallet."
+          message:
+            "No wallet found for your phone number. Reply CREATE to create a wallet.",
         };
       }
 
@@ -748,7 +774,7 @@ export class WalletService {
       if (!blockchainService.isValidAddress(recipientAddress)) {
         return {
           success: false,
-          message: "Invalid recipient address. Please check and try again."
+          message: "Invalid recipient address. Please check and try again.",
         };
       }
 
@@ -757,7 +783,7 @@ export class WalletService {
       if (isNaN(amountNum) || amountNum <= 0) {
         return {
           success: false,
-          message: "Invalid amount. Please enter a positive number."
+          message: "Invalid amount. Please enter a positive number.",
         };
       }
 
@@ -776,7 +802,7 @@ export class WalletService {
       console.error(`Error transferring ${tokenSymbol}:`, error);
       return {
         success: false,
-        message: `Failed to transfer ${tokenSymbol}. Please try again later.`
+        message: `Failed to transfer ${tokenSymbol}. Please try again later.`,
       };
     }
   }
@@ -797,32 +823,42 @@ export class WalletService {
   }> {
     try {
       const sanitizedRecipientPhone = this.sanitizePhoneNumber(recipientPhone);
-      let recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+      let recipientWallet = await this.dbService.getWallet(
+        sanitizedRecipientPhone
+      );
       let walletCreated = false;
 
       // If recipient doesn't have a wallet, create one automatically
       if (!recipientWallet) {
         console.log(`📱 Creating new wallet for recipient ${recipientPhone}`);
-        
-        const walletCreationResult = await this.createWallet(sanitizedRecipientPhone, "whatsapp");
+
+        const walletCreationResult = await this.createWallet(
+          sanitizedRecipientPhone,
+          "whatsapp"
+        );
         if (!walletCreationResult.success) {
           return {
             success: false,
-            message: `Failed to create wallet for recipient ${recipientPhone}. Please try again later.`
+            message: `Failed to create wallet for recipient ${recipientPhone}. Please try again later.`,
           };
         }
 
         // Get the newly created wallet
-        recipientWallet = await this.dbService.getWallet(sanitizedRecipientPhone);
+        recipientWallet = await this.dbService.getWallet(
+          sanitizedRecipientPhone
+        );
         if (!recipientWallet) {
           return {
             success: false,
-            message: "Failed to retrieve newly created wallet. Please try again later."
+            message:
+              "Failed to retrieve newly created wallet. Please try again later.",
           };
         }
-        
+
         walletCreated = true;
-        console.log(`✅ New wallet created for ${recipientPhone}: ${recipientWallet.address}`);
+        console.log(
+          `✅ New wallet created for ${recipientPhone}: ${recipientWallet.address}`
+        );
       }
 
       // Perform the transfer
@@ -852,7 +888,7 @@ export class WalletService {
       console.error("Error transferring to phone:", error);
       return {
         success: false,
-        message: "Failed to transfer tokens. Please try again later."
+        message: "Failed to transfer tokens. Please try again later.",
       };
     }
   }
@@ -872,22 +908,22 @@ export class WalletService {
       if (!blockchainService.isValidAddress(address)) {
         return {
           success: false,
-          message: "Invalid token contract address"
+          message: "Invalid token contract address",
         };
       }
 
       // Add the token
       addToken(symbol, name, address, decimals, enabled);
-      
+
       return {
         success: true,
-        message: `Token ${symbol.toUpperCase()} (${name}) added successfully`
+        message: `Token ${symbol.toUpperCase()} (${name}) added successfully`,
       };
     } catch (error) {
       console.error("Error adding token:", error);
       return {
         success: false,
-        message: "Failed to add token"
+        message: "Failed to add token",
       };
     }
   }
@@ -901,16 +937,19 @@ export class WalletService {
   ): Promise<{ success: boolean; message: string }> {
     try {
       toggleToken(symbol, enabled);
-      
+
       return {
         success: true,
-        message: `Token ${symbol.toUpperCase()} ${enabled ? 'enabled' : 'disabled'} successfully`
+        message: `Token ${symbol.toUpperCase()} ${
+          enabled ? "enabled" : "disabled"
+        } successfully`,
       };
     } catch (error) {
       console.error("Error toggling token:", error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : "Failed to toggle token"
+        message:
+          error instanceof Error ? error.message : "Failed to toggle token",
       };
     }
   }
@@ -918,18 +957,21 @@ export class WalletService {
   /**
    * Get list of supported tokens
    */
-  getSupportedTokens(): { success: boolean; tokens: Record<string, TokenConfig> } {
+  getSupportedTokens(): {
+    success: boolean;
+    tokens: Record<string, TokenConfig>;
+  } {
     try {
       const tokens = getEnabledTokens();
       return {
         success: true,
-        tokens
+        tokens,
       };
     } catch (error) {
       console.error("Error getting supported tokens:", error);
       return {
         success: false,
-        tokens: {}
+        tokens: {},
       };
     }
   }
@@ -948,12 +990,15 @@ export class WalletService {
   ): Promise<void> {
     try {
       if (!this.twilioClient) {
-        console.warn("Twilio client not available, skipping transfer notifications");
+        console.warn(
+          "Twilio client not available, skipping transfer notifications"
+        );
         return;
       }
 
-      const tokenEmoji = tokenSymbol === "MNT" ? "💎" : tokenSymbol === "USDC" ? "💵" : "🪙";
-      const explorerUrl = `https://sepolia.mantlescan.xyz/tx/${txHash}`;
+      const tokenEmoji =
+        tokenSymbol === "MNT" ? "💎" : tokenSymbol === "USDC" ? "💵" : "🪙";
+      const explorerUrl = `https://mantlescan.xyz/tx/${txHash}`;
 
       // Send notification to recipient
       const recipientMessage = walletCreated
@@ -983,10 +1028,12 @@ export class WalletService {
       // Send notifications with WhatsApp first, SMS fallback
       await Promise.all([
         this.sendNotificationWithFallback(recipientPhone, recipientMessage),
-        this.sendNotificationWithFallback(senderPhone, senderMessage)
+        this.sendNotificationWithFallback(senderPhone, senderMessage),
       ]);
 
-      console.log(`✅ Transfer notifications sent to ${senderPhone} and ${recipientPhone}`);
+      console.log(
+        `✅ Transfer notifications sent to ${senderPhone} and ${recipientPhone}`
+      );
     } catch (error) {
       console.error("Error in sendTransferNotifications:", error);
       // Don't throw error as the transfer itself was successful
@@ -1004,25 +1051,41 @@ export class WalletService {
   ): Promise<void> {
     try {
       if (!this.twilioClient) {
-        console.warn("Twilio client not available, skipping wallet creation notification");
+        console.warn(
+          "Twilio client not available, skipping wallet creation notification"
+        );
         return;
       }
 
       // Try preferred channel first (WhatsApp by default)
       if (preferredChannel === "whatsapp") {
         try {
-          await this.sendWhatsAppMessage(phoneNumber, walletAddress, qrCodeDataURL);
+          await this.sendWhatsAppMessage(
+            phoneNumber,
+            walletAddress,
+            qrCodeDataURL
+          );
           console.log(`📱 WhatsApp wallet notification sent to ${phoneNumber}`);
           return;
         } catch (whatsappError: any) {
-          console.log(`WhatsApp failed for ${phoneNumber}, trying SMS fallback:`, whatsappError.message);
-          
+          console.log(
+            `WhatsApp failed for ${phoneNumber}, trying SMS fallback:`,
+            whatsappError.message
+          );
+
           // Fallback to SMS
           try {
-            await this.sendSMSMessage(phoneNumber, walletAddress, qrCodeDataURL);
+            await this.sendSMSMessage(
+              phoneNumber,
+              walletAddress,
+              qrCodeDataURL
+            );
             console.log(`📧 SMS wallet notification sent to ${phoneNumber}`);
           } catch (smsError: any) {
-            console.error(`Both WhatsApp and SMS failed for ${phoneNumber}:`, smsError.message);
+            console.error(
+              `Both WhatsApp and SMS failed for ${phoneNumber}:`,
+              smsError.message
+            );
             throw smsError;
           }
         }
@@ -1032,7 +1095,10 @@ export class WalletService {
         console.log(`📧 SMS wallet notification sent to ${phoneNumber}`);
       }
     } catch (error) {
-      console.error(`Error sending wallet creation notification to ${phoneNumber}:`, error);
+      console.error(
+        `Error sending wallet creation notification to ${phoneNumber}:`,
+        error
+      );
       throw error;
     }
   }
@@ -1055,22 +1121,28 @@ export class WalletService {
         await this.twilioClient.messages.create({
           from: env.TWILIO_WHATSAPP_NUMBER,
           to: `whatsapp:${phoneNumber}`,
-          body: message
+          body: message,
         });
         console.log(`📱 WhatsApp notification sent to ${phoneNumber}`);
       } catch (whatsappError: any) {
-        console.log(`WhatsApp failed for ${phoneNumber}, trying SMS fallback:`, whatsappError.message);
-        
+        console.log(
+          `WhatsApp failed for ${phoneNumber}, trying SMS fallback:`,
+          whatsappError.message
+        );
+
         // Fallback to SMS
         try {
           await this.twilioClient.messages.create({
             from: env.TWILIO_PHONE_NUMBER,
             to: phoneNumber,
-            body: message
+            body: message,
           });
           console.log(`📧 SMS notification sent to ${phoneNumber}`);
         } catch (smsError: any) {
-          console.error(`Both WhatsApp and SMS failed for ${phoneNumber}:`, smsError.message);
+          console.error(
+            `Both WhatsApp and SMS failed for ${phoneNumber}:`,
+            smsError.message
+          );
           // Don't throw error as the transfer itself was successful
         }
       }
@@ -1089,11 +1161,11 @@ export class WalletService {
   ): Promise<{ success: boolean; message?: string }> {
     try {
       const balanceResult = await this.getWalletBalances(phoneNumber);
-      
+
       if (!balanceResult.success || !balanceResult.balances) {
         return {
           success: false,
-          message: balanceResult.message
+          message: balanceResult.message,
         };
       }
 
@@ -1103,20 +1175,22 @@ export class WalletService {
       // Build dynamic balance message
       let balanceLines = "";
       const supportedTokens = getSupportedTokenSymbols();
-      
+
       for (const symbol of supportedTokens) {
         const tokenConfig = getTokenConfig(symbol);
         if (!tokenConfig) continue;
-        
+
         const balance = (balances as any)[symbol.toLowerCase()] || "0";
-        const formattedBalance = parseFloat(balance).toFixed(tokenConfig.decimals === 6 ? 2 : 4);
-        
+        const formattedBalance = parseFloat(balance).toFixed(
+          tokenConfig.decimals === 6 ? 2 : 4
+        );
+
         // Add appropriate emoji for each token
         const emoji = symbol === "MNT" ? "💎" : symbol === "USDC" ? "💵" : "🪙";
         balanceLines += `${emoji} ${symbol}: ${formattedBalance} ${symbol}\n`;
       }
 
-      const message = 
+      const message =
         `💰 Your Wallet Balance\n\n` +
         `Address: ${balances.address}\n\n` +
         balanceLines +
@@ -1136,26 +1210,33 @@ export class WalletService {
             await this.twilioClient.messages.create({
               from: env.TWILIO_WHATSAPP_NUMBER,
               to: `whatsapp:${sanitizedPhone}`,
-              body: message
+              body: message,
             });
-            console.log(`✅ Balance message sent to ${sanitizedPhone} via WhatsApp`);
+            console.log(
+              `✅ Balance message sent to ${sanitizedPhone} via WhatsApp`
+            );
           } catch (whatsappError: any) {
-            console.log(`WhatsApp failed for ${sanitizedPhone}, trying SMS fallback:`, whatsappError.message);
-            
+            console.log(
+              `WhatsApp failed for ${sanitizedPhone}, trying SMS fallback:`,
+              whatsappError.message
+            );
+
             // Fallback to SMS
             await this.twilioClient.messages.create({
               from: env.TWILIO_PHONE_NUMBER,
               to: sanitizedPhone,
-              body: message
+              body: message,
             });
-            console.log(`✅ Balance message sent to ${sanitizedPhone} via SMS (fallback)`);
+            console.log(
+              `✅ Balance message sent to ${sanitizedPhone} via SMS (fallback)`
+            );
           }
         } else {
           // SMS was specifically requested
           await this.twilioClient.messages.create({
             from: env.TWILIO_PHONE_NUMBER,
             to: sanitizedPhone,
-            body: message
+            body: message,
           });
           console.log(`✅ Balance message sent to ${sanitizedPhone} via SMS`);
         }
@@ -1165,14 +1246,14 @@ export class WalletService {
         console.error(`Failed to send balance message:`, messageError);
         return {
           success: false,
-          message: "Failed to send balance information"
+          message: "Failed to send balance information",
         };
       }
     } catch (error) {
       console.error("Error sending balance message:", error);
       return {
         success: false,
-        message: "Failed to get balance information"
+        message: "Failed to get balance information",
       };
     }
   }

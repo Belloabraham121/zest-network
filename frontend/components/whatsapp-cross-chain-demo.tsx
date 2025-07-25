@@ -184,14 +184,14 @@ export function WhatsAppCrossChainDemo() {
   };
 
   return (
-    <section className="py-16 bg-slate-50">
+    <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               Cross-Chain AI in Action
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               Experience how our AI handles complex cross-chain operations
               through simple WhatsApp conversations
             </p>
@@ -200,7 +200,7 @@ export function WhatsAppCrossChainDemo() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Demo Controls */}
             <div>
-              <h3 className="text-xl font-medium text-slate-800 mb-6">
+              <h3 className="text-xl font-medium text-foreground mb-6">
                 Try Cross-Chain Scenarios
               </h3>
               <div className="space-y-4">
@@ -211,8 +211,8 @@ export function WhatsAppCrossChainDemo() {
                     disabled={isPlaying}
                     className={`w-full justify-start p-4 h-auto ${
                       currentDemo === index && !isPlaying
-                        ? "bg-slate-800 text-white"
-                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card text-card-foreground border border-border hover:bg-muted"
                     }`}>
                     <scenario.icon className="w-5 h-5 mr-3 flex-shrink-0" />
                     <div className="text-left">
@@ -232,31 +232,31 @@ export function WhatsAppCrossChainDemo() {
                 ))}
               </div>
 
-              <div className="mt-8 p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
-                <h4 className="font-medium text-slate-800 mb-4 flex items-center">
-                  <Globe className="w-5 h-5 mr-2 text-blue-600" />
+              <div className="mt-8 p-6 bg-card rounded-lg border border-border shadow-sm">
+                <h4 className="font-medium text-foreground mb-4 flex items-center">
+                  <Globe className="w-5 h-5 mr-2 text-primary" />
                   LiFi Protocol Integration
                 </h4>
-                <ul className="space-y-2 text-sm text-slate-600">
+                <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Access to 20+ blockchains including Ethereum, Solana,
                     Polygon, Arbitrum
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     500+ DEXs aggregated for best rates and liquidity
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     15+ battle-tested bridges with insurance coverage
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     Smart routing algorithms minimize fees and time
                   </li>
                   <li className="flex items-start">
-                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></span>
                     One-click zaps for complex DeFi strategies
                   </li>
                 </ul>
@@ -265,30 +265,30 @@ export function WhatsAppCrossChainDemo() {
 
             {/* WhatsApp Interface */}
             <div>
-              <Card className="bg-white shadow-2xl border border-slate-200">
-                <div className="bg-slate-700 p-4 rounded-t-lg">
+              <Card className="bg-card shadow-2xl border border-border">
+                <div className="bg-primary dark:bg-slate-800 p-4 rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
-                        <ArrowRightLeft className="w-6 h-6 text-blue-600" />
+                      <div className="w-10 h-10 bg-primary-foreground dark:bg-white rounded-full flex items-center justify-center mr-3">
+                        <ArrowRightLeft className="w-6 h-6 text-primary dark:text-slate-800" />
                       </div>
                       <div>
-                        <div className="font-medium text-white">
+                        <div className="font-medium text-primary-foreground dark:text-white">
                           Zest Cross-Chain AI
                         </div>
-                        <div className="text-xs text-blue-100">
+                        <div className="text-xs text-primary-foreground/80 dark:text-white/80">
                           Powered by LiFi Protocol
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-blue-100 bg-white/20 px-2 py-1 rounded-full">
+                    <div className="text-xs text-primary-foreground/80 dark:text-white/80 bg-primary-foreground/20 dark:bg-white/20 px-2 py-1 rounded-full">
                       20+ Chains
                     </div>
                   </div>
                 </div>
 
                 <CardContent className="p-0">
-                  <div className="h-96 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                  <div className="h-96 overflow-y-auto p-4 space-y-4 bg-muted">
                     {messages.map((message) => (
                       <div
                         key={message.id}
@@ -298,20 +298,25 @@ export function WhatsAppCrossChainDemo() {
                         <div
                           className={`max-w-[85%] p-3 rounded-lg ${
                             message.isUser
-                              ? "bg-slate-800 text-white rounded-br-sm"
+                              ? "bg-primary text-primary-foreground rounded-br-sm"
                               : message.isTyping
-                              ? "bg-slate-300 text-slate-600 animate-pulse"
-                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-sm shadow-sm"
+                              ? "bg-muted text-muted-foreground animate-pulse"
+                              : "bg-card text-card-foreground border border-border rounded-bl-sm shadow-sm"
                           }`}>
                           <p className="text-sm whitespace-pre-line">
                             {message.text}
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-75">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {message.timestamp
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0")}
+                              :
+                              {message.timestamp
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0")}
                             </span>
                             {message.isUser && (
                               <span className="text-xs opacity-75">✓✓</span>
@@ -323,7 +328,7 @@ export function WhatsAppCrossChainDemo() {
 
                     {isPlaying && (
                       <div className="flex justify-center">
-                        <div className="bg-slate-100 border border-slate-200 text-slate-600 px-4 py-2 rounded-full text-sm animate-pulse">
+                        <div className="bg-card border border-border text-card-foreground px-4 py-2 rounded-full text-sm animate-pulse">
                           Cross-chain demo in progress...
                         </div>
                       </div>
@@ -333,11 +338,11 @@ export function WhatsAppCrossChainDemo() {
               </Card>
 
               <div className="mt-4 text-center">
-                <p className="text-sm text-slate-600 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Ready for cross-chain magic?
                 </p>
                 <Button
-                  className="bg-slate-800 hover:bg-slate-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={() =>
                     window.open(
                       "https://wa.me/+1415523-8886?text=Swap ETH to SOL",

@@ -39,14 +39,14 @@ export function CallToAction() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-slate-800 relative overflow-hidden">
+      className="py-16 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0">
         {/* Floating particles */}
         {particles.map((particle) => (
           <div
             key={particle.id}
-            className="absolute w-1 h-1 bg-white rounded-full opacity-20 animate-float-particle"
+            className="absolute w-1 h-1 bg-primary-foreground rounded-full opacity-20 animate-float-particle"
             style={{
               left: `${particle.x}%`,
               top: `${particle.y}%`,
@@ -56,14 +56,14 @@ export function CallToAction() {
         ))}
 
         {/* Gradient orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-teal-600 rounded-full opacity-10 blur-3xl animate-pulse-orb"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/60 rounded-full opacity-10 blur-3xl animate-pulse-orb"></div>
         <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-600 rounded-full opacity-10 blur-3xl animate-pulse-orb"
+          className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/40 rounded-full opacity-10 blur-3xl animate-pulse-orb"
           style={{ animationDelay: "1s" }}></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-3xl mx-auto text-center text-white">
+        <div className="max-w-3xl mx-auto text-center text-primary-foreground">
           <div
             className={`transition-all duration-1000 ease-out ${
               isVisible
@@ -81,7 +81,7 @@ export function CallToAction() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <p className="text-lg text-slate-300 mb-12 animate-fade-in-delayed">
+            <p className="text-lg text-primary-foreground mb-12 animate-fade-in-delayed">
               Join millions using Zest to send, stake, and grow their crypto.
             </p>
           </div>
@@ -95,27 +95,27 @@ export function CallToAction() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Button
                 size="lg"
-                className="bg-white text-slate-800 hover:bg-slate-100 px-8 py-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group animate-button-glow"
+                className="bg-background text-foreground hover:bg-muted px-8 py-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group animate-button-glow"
                 onClick={() =>
                   window.open("https://wa.me/+1415523-8886?text=HELP", "_blank")
                 }>
                 {/* Button shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground to-transparent opacity-0 group-hover:opacity-30 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
 
                 <MessageCircle className="w-5 h-5 mr-2 animate-bounce-gentle relative z-10" />
                 <span className="relative z-10">Start on WhatsApp</span>
               </Button>
 
               <div className="relative flex items-center justify-center group animate-dial-pulse px-4">
-                <span className="text-slate-400 text-sm mr-3 group-hover:text-slate-300 transition-colors duration-200">
+                <span className="text-primary-foreground text-sm mr-3 group-hover:text-primary-foreground transition-colors duration-200">
                   or dial
                 </span>
-                <span className="font-mono text-2xl group-hover:text-teal-300 transition-all duration-300 group-hover:scale-110 transform">
+                <span className="font-mono text-2xl group-hover:text-primary-foreground transition-all duration-300 group-hover:scale-110 transform">
                   *777#
                 </span>
 
                 {/* Ripple effect */}
-                <div className="absolute inset-0 border-2 border-teal-400 rounded-full opacity-0 group-hover:opacity-100 animate-ripple"></div>
+                <div className="absolute inset-0 border-2 border-primary-foreground rounded-full opacity-0 group-hover:opacity-100 animate-ripple"></div>
               </div>
             </div>
           </div>
@@ -127,21 +127,21 @@ export function CallToAction() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <div className="flex justify-center space-x-8 text-sm text-slate-400">
+            <div className="flex justify-center space-x-8 text-sm text-primary-foreground">
               <div className="flex items-center animate-success-indicator">
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Instant Setup</span>
               </div>
               <div
                 className="flex items-center animate-success-indicator"
                 style={{ animationDelay: "0.2s" }}>
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Bank-Level Security</span>
               </div>
               <div
                 className="flex items-center animate-success-indicator"
                 style={{ animationDelay: "0.4s" }}>
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Works Everywhere</span>
               </div>
             </div>
@@ -181,20 +181,20 @@ export function CallToAction() {
         @keyframes text-glow {
           0%,
           100% {
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            text-shadow: 0 0 10px currentColor;
           }
           50% {
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 20px currentColor;
           }
         }
 
         @keyframes button-glow {
           0%,
           100% {
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px currentColor;
           }
           50% {
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px currentColor;
           }
         }
 

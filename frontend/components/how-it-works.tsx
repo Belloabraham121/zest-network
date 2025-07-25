@@ -45,12 +45,19 @@ export function HowItWorks() {
     <section
       ref={sectionRef}
       id="how-it-works"
-      className="py-16 bg-slate-50 relative overflow-hidden">
+      className="py-16 bg-gradient-to-b from-muted/30 via-background to-background/95 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/15 via-transparent to-transparent opacity-50 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-green-900/5 via-blue-900/5 to-purple-900/5"></div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-100 rounded-full opacity-20 animate-pulse-slow"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full opacity-20 animate-pulse-slow"></div>
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-slate-200 rounded-full opacity-20 animate-pulse-slow"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-muted-foreground/20 rounded-full opacity-20 animate-pulse-slow"
           style={{ animationDelay: "1s" }}></div>
       </div>
 
@@ -62,10 +69,10 @@ export function HowItWorks() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               How it works
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               Three simple steps to start using crypto
             </p>
 
@@ -77,16 +84,16 @@ export function HowItWorks() {
                     key={step}
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-500 ${
                       activeStep >= step
-                        ? "bg-teal-600 text-white scale-110"
-                        : "bg-slate-300 text-slate-600"
+                        ? "bg-primary text-primary-foreground scale-110"
+                        : "bg-muted text-muted-foreground"
                     }`}>
                     {step}
                   </div>
                 ))}
               </div>
-              <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-teal-600 transition-all duration-1000 ease-out"
+                  className="h-full bg-primary transition-all duration-1000 ease-out"
                   style={{ width: `${(activeStep / 3) * 100}%` }}></div>
               </div>
             </div>
@@ -99,10 +106,10 @@ export function HowItWorks() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <div className="bg-white rounded-lg p-1 shadow-sm border border-slate-200 relative overflow-hidden flex">
+            <div className="bg-card rounded-lg p-1 shadow-sm border border-border relative overflow-hidden flex">
               {/* Sliding background */}
               <div
-                className={`absolute top-1 bottom-1 left-0 w-1/3 bg-slate-800 rounded-md transition-all duration-500 ease-in-out transform ${
+                className={`absolute top-1 bottom-1 left-0 w-1/3 bg-primary rounded-md transition-all duration-500 ease-in-out transform ${
                   activeTab === "whatsapp"
                     ? "translate-x-0"
                     : activeTab === "ussd"
@@ -116,8 +123,8 @@ export function HowItWorks() {
                 variant="ghost"
                 className={`w-40 text-sm transition-all duration-200 relative z-10 ${
                   activeTab === "whatsapp"
-                    ? "text-white"
-                    : "text-slate-600 hover:text-slate-800"
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setActiveTab("whatsapp")}>
                 <MessageCircle className="w-4 h-4 mr-2 animate-bounce-on-hover" />
@@ -129,8 +136,8 @@ export function HowItWorks() {
                 variant="ghost"
                 className={`w-40 text-sm transition-all duration-200 relative z-10 ${
                   activeTab === "ussd"
-                    ? "text-white"
-                    : "text-slate-600 hover:text-slate-800"
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setActiveTab("ussd")}>
                 <Phone className="w-4 h-4 mr-2 animate-bounce-on-hover" />
@@ -142,8 +149,8 @@ export function HowItWorks() {
                 variant="ghost"
                 className={`w-40 text-sm transition-all duration-200 relative z-10 ${
                   activeTab === "sms"
-                    ? "text-white"
-                    : "text-slate-600 hover:text-slate-800"
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => setActiveTab("sms")}>
                 <MessageSquare className="w-4 h-4 mr-2" />
@@ -161,15 +168,15 @@ export function HowItWorks() {
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
               }`}>
-              <div className="flex-shrink-0 w-12 h-12 bg-slate-800 text-white rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
+              <div className="flex-shrink-0 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
                 <span className="relative z-10">1</span>
-                <div className="absolute inset-0 bg-teal-600 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
+                <div className="absolute inset-0 bg-primary/80 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-medium text-slate-800 mb-4">
+                <h3 className="text-xl font-medium text-foreground mb-4">
                   Get started
                 </h3>
-                <div className="bg-white rounded-lg p-6 border border-slate-200 hover:border-slate-300 transition-all duration-200 hover:shadow-md transform hover:scale-105">
+                <div className="bg-card rounded-lg p-6 border border-border hover:border-border/80 transition-all duration-200 hover:shadow-md transform hover:scale-105">
                   <div
                     className={`transition-all duration-500 ${
                       activeTab === "whatsapp"
@@ -178,11 +185,11 @@ export function HowItWorks() {
                     }`}>
                     {activeTab === "whatsapp" && (
                       <div>
-                        <p className="text-slate-700 mb-3">
+                        <p className="text-foreground mb-3">
                           Send &quot;START&quot; to our WhatsApp
                         </p>
                         <Button
-                          className="bg-teal-600 hover:bg-teal-700 text-white text-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-glow"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-glow"
                           onClick={() =>
                             window.open(
                               "https://wa.me/+1415523-8886?text=HELP",
@@ -202,8 +209,10 @@ export function HowItWorks() {
                     }`}>
                     {activeTab === "ussd" && (
                       <div>
-                        <p className="text-slate-700 mb-3">Dial on any phone</p>
-                        <p className="font-mono text-2xl text-slate-800 hover:text-teal-700 transition-colors duration-200 animate-pulse-number">
+                        <p className="text-foreground mb-3">
+                          Dial on any phone
+                        </p>
+                        <p className="font-mono text-2xl text-foreground hover:text-primary transition-colors duration-200 animate-pulse-number">
                           *777#
                         </p>
                       </div>
@@ -215,13 +224,13 @@ export function HowItWorks() {
                     }`}>
                     {activeTab === "sms" && (
                       <div>
-                        <p className="text-slate-700 mb-3">
+                        <p className="text-foreground mb-3">
                           Text &quot;START&quot; to our SMS number
                         </p>
-                        <p className="font-mono text-xl text-slate-800 hover:text-teal-700 transition-colors duration-200">
+                        <p className="font-mono text-xl text-foreground hover:text-primary transition-colors duration-200">
                           +1 (415) 523-8886
                         </p>
-                        <p className="text-sm text-slate-500 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           Works on any phone, no internet needed
                         </p>
                       </div>
@@ -238,20 +247,20 @@ export function HowItWorks() {
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
               }`}>
-              <div className="flex-shrink-0 w-12 h-12 bg-slate-800 text-white rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
+              <div className="flex-shrink-0 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
                 <span className="relative z-10">2</span>
-                <div className="absolute inset-0 bg-teal-600 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
+                <div className="absolute inset-0 bg-primary/80 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-medium text-slate-800 mb-4">
+                <h3 className="text-xl font-medium text-foreground mb-4">
                   Your wallet is created
                 </h3>
                 <div className="relative">
-                  <p className="text-slate-600 hover:text-slate-800 transition-colors duration-200">
+                  <p className="text-muted-foreground hover:text-foreground transition-colors duration-200">
                     We automatically create a secure wallet linked to your phone
                     number. No seed phrases to remember.
                   </p>
-                  <div className="absolute -right-4 -top-2 w-8 h-8 bg-teal-100 rounded-full animate-ping opacity-20"></div>
+                  <div className="absolute -right-4 -top-2 w-8 h-8 bg-primary/20 rounded-full animate-ping opacity-20"></div>
                 </div>
               </div>
             </div>
@@ -263,12 +272,12 @@ export function HowItWorks() {
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
               }`}>
-              <div className="flex-shrink-0 w-12 h-12 bg-slate-800 text-white rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
+              <div className="flex-shrink-0 w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium mr-6 mt-1 relative overflow-hidden group">
                 <span className="relative z-10">3</span>
-                <div className="absolute inset-0 bg-teal-600 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
+                <div className="absolute inset-0 bg-primary/80 scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></div>
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-medium text-slate-800 mb-6">
+                <h3 className="text-xl font-medium text-foreground mb-6">
                   Start using crypto
                 </h3>
                 <div className="grid md:grid-cols-3 gap-6">
@@ -279,7 +288,7 @@ export function HowItWorks() {
                       whatsapp: "Send 10 USDC to +234...",
                       ussd: "Dial *777*1*10*234...#",
                       sms: "Text: Send 10 USDC to +234...",
-                      color: "text-blue-600",
+                      color: "text-blue-500",
                     },
                     {
                       icon: ArrowRightLeft,
@@ -287,7 +296,7 @@ export function HowItWorks() {
                       whatsapp: "Swap ETH to SOL",
                       ussd: "Dial *777*4*ETH*SOL#",
                       sms: "Text: Swap ETH to SOL",
-                      color: "text-purple-600",
+                      color: "text-purple-500",
                     },
                     {
                       icon: TrendingUp,
@@ -295,7 +304,7 @@ export function HowItWorks() {
                       whatsapp: "Stake 20 USDC",
                       ussd: "Dial *777*2*20#",
                       sms: "Text: Stake 20 USDC",
-                      color: "text-emerald-600",
+                      color: "text-emerald-500",
                     },
                     {
                       icon: Globe,
@@ -303,21 +312,21 @@ export function HowItWorks() {
                       whatsapp: "Bridge USDC to Arbitrum",
                       ussd: "Dial *777*5*USDC*ARB#",
                       sms: "Text: Bridge to Arbitrum",
-                      color: "text-amber-600",
+                      color: "text-amber-500",
                     },
                   ].map((action, index) => (
                     <div
                       key={index}
-                      className="bg-white rounded-lg p-6 border border-slate-200 hover:border-teal-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group perspective-1000"
+                      className="bg-card rounded-lg p-6 border border-border hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-2 group perspective-1000"
                       style={{ animationDelay: `${index * 200}ms` }}>
                       <div className="transform transition-transform duration-300 group-hover:rotateY-5">
                         <action.icon
                           className={`w-6 h-6 ${action.color} mb-3 group-hover:scale-110 transition-transform duration-200`}
                         />
-                        <h4 className="font-medium text-slate-800 mb-2 group-hover:text-slate-900 transition-colors duration-200">
+                        <h4 className="font-medium text-foreground mb-2 group-hover:text-foreground transition-colors duration-200">
                           {action.title}
                         </h4>
-                        <p className="text-sm text-slate-600 mb-3 group-hover:text-slate-700 transition-colors duration-200">
+                        <p className="text-sm text-muted-foreground mb-3 group-hover:text-foreground transition-colors duration-200">
                           {activeTab === "whatsapp"
                             ? action.whatsapp
                             : activeTab === "ussd"

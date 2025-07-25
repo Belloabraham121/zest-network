@@ -57,7 +57,7 @@ export function CrossChainFeatures() {
       description:
         "Swap any token across 20+ blockchains with best rates via LiFi aggregation",
       example: "Swap ETH on Ethereum → SOL on Solana",
-      color: "text-blue-600 bg-blue-50",
+      color: "text-blue-500 bg-blue-500/10",
     },
     {
       icon: Globe,
@@ -65,7 +65,7 @@ export function CrossChainFeatures() {
       description:
         "Bridge assets seamlessly between EVM chains and Solana with automatic routing",
       example: "Bridge USDC from Polygon → Base",
-      color: "text-purple-600 bg-purple-50",
+      color: "text-purple-500 bg-purple-500/10",
     },
     {
       icon: Zap,
@@ -73,7 +73,7 @@ export function CrossChainFeatures() {
       description:
         "One-click complex DeFi operations across chains - stake, LP, yield farm in one transaction",
       example: "Zap ETH → Stake on Arbitrum in one step",
-      color: "text-amber-600 bg-amber-50",
+      color: "text-amber-500 bg-amber-500/10",
     },
     {
       icon: TrendingUp,
@@ -81,7 +81,7 @@ export function CrossChainFeatures() {
       description:
         "AI finds optimal routes across DEXs and bridges for maximum value and minimal fees",
       example: "Save 15% on swaps with smart routing",
-      color: "text-emerald-600 bg-emerald-50",
+      color: "text-emerald-500 bg-emerald-500/10",
     },
     {
       icon: Shield,
@@ -89,7 +89,7 @@ export function CrossChainFeatures() {
       description:
         "Built on battle-tested bridges and DEXs with insurance coverage for peace of mind",
       example: "Protected by Nexus Mutual insurance",
-      color: "text-red-600 bg-red-50",
+      color: "text-red-500 bg-red-500/10",
     },
     {
       icon: Clock,
@@ -97,7 +97,7 @@ export function CrossChainFeatures() {
       description:
         "Most swaps complete in under 30 seconds, bridges in 2-5 minutes depending on chains",
       example: "Polygon → Arbitrum in 2 minutes",
-      color: "text-teal-600 bg-teal-50",
+      color: "text-teal-500 bg-teal-500/10",
     },
   ];
 
@@ -113,7 +113,14 @@ export function CrossChainFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-white relative overflow-hidden">
+      className="py-16 bg-gradient-to-b from-background via-background to-background/95 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent opacity-60 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/5 via-purple-900/5 to-blue-900/5"></div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+
       {/* Animated chain connections background */}
       <div className="absolute inset-0 opacity-5">
         <svg className="w-full h-full" viewBox="0 0 1000 600">
@@ -202,14 +209,14 @@ export function CrossChainFeatures() {
                 : "opacity-0 translate-y-8"
             }`}>
             <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center animate-pulse-gentle">
-                <ArrowRightLeft className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center animate-pulse-gentle">
+                <ArrowRightLeft className="w-8 h-8 text-primary-foreground" />
               </div>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-light text-slate-800 mb-6">
+            <h2 className="text-3xl sm:text-4xl font-light text-foreground mb-6">
               Cross-Chain DeFi Made Simple
             </h2>
-            <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
               Powered by LiFi Protocol - swap, bridge, and zap across 20+
               blockchains with a simple WhatsApp message. No complex interfaces,
               just natural conversation.
@@ -223,7 +230,7 @@ export function CrossChainFeatures() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <h3 className="text-xl font-medium text-slate-800 text-center mb-8">
+            <h3 className="text-xl font-medium text-foreground text-center mb-8">
               Supported Networks
             </h3>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -232,11 +239,11 @@ export function CrossChainFeatures() {
                   key={index}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-full border-2 transition-all duration-300 ${
                     activeChain === index
-                      ? "border-blue-500 bg-blue-50 scale-110 shadow-lg"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      ? "border-primary bg-primary/10 scale-110 shadow-lg"
+                      : "border-border bg-card hover:border-border/80"
                   }`}>
                   <span className="text-lg">{chain.logo}</span>
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-foreground">
                     {chain.name}
                   </span>
                 </div>
@@ -244,9 +251,9 @@ export function CrossChainFeatures() {
             </div>
 
             <div className="text-center">
-              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-200">
-                <Globe className="w-5 h-5 text-blue-600 mr-2" />
-                <span className="text-sm font-medium text-slate-700">
+              <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary/10 to-primary/20 rounded-full border border-primary/30">
+                <Globe className="w-5 h-5 text-primary mr-2" />
+                <span className="text-sm font-medium text-foreground">
                   20+ Networks • 500+ DEXs • 15+ Bridges
                 </span>
               </div>
@@ -256,7 +263,7 @@ export function CrossChainFeatures() {
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Features List */}
             <div className="space-y-6">
-              <h3 className="text-xl font-medium text-slate-800 mb-6">
+              <h3 className="text-xl font-medium text-foreground mb-6">
                 Cross-Chain Capabilities
               </h3>
               {crossChainFeatures.map((feature, index) => (
@@ -268,7 +275,7 @@ export function CrossChainFeatures() {
                       : "opacity-0 -translate-x-8"
                   }`}
                   style={{ transitionDelay: `${index * 100 + 400}ms` }}>
-                  <Card className="border-2 border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 bg-white">
+                  <Card className="border-2 border-border hover:border-border/80 hover:shadow-md transition-all duration-300 bg-card">
                     <CardContent className="p-6">
                       <div className="flex items-start">
                         <div
@@ -276,13 +283,13 @@ export function CrossChainFeatures() {
                           <feature.icon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-lg font-medium text-slate-800 mb-2">
+                          <h4 className="text-lg font-medium text-foreground mb-2">
                             {feature.title}
                           </h4>
-                          <p className="text-slate-600 text-sm leading-relaxed mb-2">
+                          <p className="text-muted-foreground text-sm leading-relaxed mb-2">
                             {feature.description}
                           </p>
-                          <p className="text-xs text-slate-500 italic">
+                          <p className="text-xs text-muted-foreground italic">
                             {feature.example}
                           </p>
                         </div>
@@ -300,17 +307,17 @@ export function CrossChainFeatures() {
                   ? "opacity-100 translate-x-0"
                   : "opacity-0 translate-x-8"
               }`}>
-              <Card className="bg-slate-800 text-white shadow-2xl">
-                <div className="bg-slate-700 p-4 rounded-t-lg">
+              <Card className="bg-card text-card-foreground shadow-2xl border border-border">
+                <div className="bg-muted p-4 rounded-t-lg">
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3 animate-pulse-ring">
-                      <ArrowRightLeft className="w-6 h-6 text-blue-600" />
+                    <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center mr-3 animate-pulse-ring">
+                      <ArrowRightLeft className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <div className="font-medium text-white">
+                      <div className="font-medium text-foreground">
                         LiFi Cross-Chain
                       </div>
-                      <div className="text-xs text-blue-100">
+                      <div className="text-xs text-muted-foreground">
                         Powered by Zest AI
                       </div>
                     </div>
@@ -320,64 +327,72 @@ export function CrossChainFeatures() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* Swap Example */}
-                    <div className="bg-slate-700 rounded-lg p-4">
+                    <div className="bg-muted rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-300">
+                        <span className="text-sm text-foreground">
                           Cross-Chain Swap
                         </span>
-                        <span className="text-xs text-green-400">
+                        <span className="text-xs text-green-500">
                           ✓ Best Rate
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="text-center">
                           <div className="text-lg font-medium">100 USDC</div>
-                          <div className="text-xs text-slate-400">Ethereum</div>
+                          <div className="text-xs text-muted-foreground">
+                            Ethereum
+                          </div>
                         </div>
-                        <ArrowRightLeft className="w-5 h-5 text-blue-400 animate-pulse" />
+                        <ArrowRightLeft className="w-5 h-5 text-primary animate-pulse" />
                         <div className="text-center">
                           <div className="text-lg font-medium">0.702 SOL</div>
-                          <div className="text-xs text-slate-400">Solana</div>
+                          <div className="text-xs text-muted-foreground">
+                            Solana
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3 text-xs text-slate-400 text-center">
+                      <div className="mt-3 text-xs text-muted-foreground text-center">
                         Route: Ethereum → Wormhole → Solana • Fee: $0.15 • Time:
                         ~2 min
                       </div>
                     </div>
 
                     {/* Bridge Example */}
-                    <div className="bg-slate-700 rounded-lg p-4">
+                    <div className="bg-muted rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-300">
+                        <span className="text-sm text-foreground">
                           Bridge Assets
                         </span>
-                        <span className="text-xs text-blue-400">⚡ Fast</span>
+                        <span className="text-xs text-blue-500">⚡ Fast</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="text-center">
                           <div className="text-lg font-medium">50 USDC</div>
-                          <div className="text-xs text-slate-400">Polygon</div>
+                          <div className="text-xs text-muted-foreground">
+                            Polygon
+                          </div>
                         </div>
-                        <Globe className="w-5 h-5 text-purple-400 animate-spin-slow" />
+                        <Globe className="w-5 h-5 text-purple-500 animate-spin-slow" />
                         <div className="text-center">
                           <div className="text-lg font-medium">50 USDC</div>
-                          <div className="text-xs text-slate-400">Base</div>
+                          <div className="text-xs text-muted-foreground">
+                            Base
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3 text-xs text-slate-400 text-center">
+                      <div className="mt-3 text-xs text-muted-foreground text-center">
                         Route: Polygon → Stargate → Base • Fee: $0.08 • Time:
                         ~30 sec
                       </div>
                     </div>
 
                     {/* Zap Example */}
-                    <div className="bg-slate-700 rounded-lg p-4">
+                    <div className="bg-muted rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-300">
+                        <span className="text-sm text-foreground">
                           Smart Zap
                         </span>
-                        <span className="text-xs text-amber-400">
+                        <span className="text-xs text-amber-500">
                           🚀 One-Click
                         </span>
                       </div>
@@ -385,7 +400,7 @@ export function CrossChainFeatures() {
                         <div className="text-lg font-medium mb-2">
                           ETH → Arbitrum Staking
                         </div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-muted-foreground">
                           Swap ETH → Bridge to Arbitrum → Stake in one
                           transaction
                         </div>
@@ -395,7 +410,7 @@ export function CrossChainFeatures() {
 
                   <div className="mt-6 text-center">
                     <Button
-                      className="bg-slate-800 hover:bg-slate-700 text-white"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
                       onClick={() =>
                         window.open(
                           "https://wa.me/+14155238886?text=Swap 100 USDC to SOL",
@@ -417,11 +432,13 @@ export function CrossChainFeatures() {
                 ].map((stat, index) => (
                   <div
                     key={index}
-                    className="text-center p-4 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="text-2xl font-light text-slate-800">
+                    className="text-center p-4 bg-card rounded-lg border border-border">
+                    <div className="text-2xl font-light text-foreground">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-slate-600">{stat.label}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {stat.label}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -453,13 +470,13 @@ export function CrossChainFeatures() {
 
         @keyframes pulse-ring {
           0% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 0 0 currentColor;
           }
           70% {
-            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 10px transparent;
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            box-shadow: 0 0 0 0 transparent;
           }
         }
 

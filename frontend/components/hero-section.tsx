@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Phone, MessageSquare } from "lucide-react";
 
 export function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);

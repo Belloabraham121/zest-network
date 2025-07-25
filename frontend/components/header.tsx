@@ -41,25 +41,25 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <button
               onClick={() => scrollToSection("home")}
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium">
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium cursor-pointer">
               Home
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
             </button>
             <button
               onClick={() => scrollToSection("how-it-works")}
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium">
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium cursor-pointer">
               How It Works
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
             </button>
             <button
               onClick={() => scrollToSection("features")}
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium">
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium cursor-pointer">
               Features
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
             </button>
             <button
               onClick={() => scrollToSection("faq")}
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium">
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm relative group font-medium cursor-pointer">
               FAQs
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
             </button>
@@ -81,7 +81,7 @@ export function Header() {
           <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
             <button
-              className="p-2 hover:bg-muted rounded-lg transition-colors duration-200"
+              className="p-2 hover:bg-muted rounded-lg transition-colors duration-200 cursor-pointer"
               onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? (
                 <X className="w-5 h-5" />
@@ -101,22 +101,22 @@ export function Header() {
             <nav className="flex flex-col space-y-4">
               <button
                 onClick={() => scrollToSection("home")}
-                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2">
+                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2 cursor-pointer">
                 Home
               </button>
               <button
                 onClick={() => scrollToSection("how-it-works")}
-                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2">
+                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2 cursor-pointer">
                 How It Works
               </button>
               <button
                 onClick={() => scrollToSection("features")}
-                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2">
+                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2 cursor-pointer">
                 Features
               </button>
               <button
                 onClick={() => scrollToSection("faq")}
-                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2">
+                className="text-left text-muted-foreground hover:text-foreground transition-colors duration-200 text-sm py-2 hover:bg-muted rounded px-2 cursor-pointer">
                 FAQs
               </button>
               <Button

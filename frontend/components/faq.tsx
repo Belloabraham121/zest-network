@@ -122,7 +122,7 @@ export function FAQ() {
                   }`}
                   style={{ transitionDelay: `${index * 100 + 200}ms` }}>
                   <button
-                    className="w-full text-left p-6 flex items-center justify-between hover:bg-muted transition-colors duration-200 rounded-lg"
+                    className="w-full text-left p-6 flex items-center justify-between hover:bg-muted transition-colors duration-200 rounded-lg cursor-pointer"
                     onClick={() => toggleItem(index)}>
                     <span className="font-medium text-foreground pr-4">
                       {faq.q}

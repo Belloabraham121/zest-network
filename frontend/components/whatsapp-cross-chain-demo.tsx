@@ -298,7 +298,7 @@ export function WhatsAppCrossChainDemo() {
                         <div
                           className={`max-w-[85%] p-3 rounded-lg ${
                             message.isUser
-                              ? "bg-primary dark:bg-slate-800 text-primary-foreground dark:text-white rounded-br-sm"
+                              ? "bg-primary text-primary-foreground rounded-br-sm"
                               : message.isTyping
                               ? "bg-muted text-muted-foreground animate-pulse"
                               : "bg-card text-card-foreground border border-border rounded-bl-sm shadow-sm"
@@ -308,10 +308,15 @@ export function WhatsAppCrossChainDemo() {
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-75">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {message.timestamp
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0")}
+                              :
+                              {message.timestamp
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0")}
                             </span>
                             {message.isUser && (
                               <span className="text-xs opacity-75">✓✓</span>

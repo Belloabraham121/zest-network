@@ -4,8 +4,17 @@ import { MessageCircle, Phone, Mail } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer id="about" className="bg-muted/30 border-t border-border">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer
+      id="about"
+      className="bg-gradient-to-b from-muted/30 via-background to-background/95 border-t border-border relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent opacity-40 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-purple-900/3 to-indigo-900/5"></div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:30px_30px]"></div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Company Info */}
           <div>

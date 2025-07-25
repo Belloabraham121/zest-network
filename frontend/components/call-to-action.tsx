@@ -39,7 +39,7 @@ export function CallToAction() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-primary dark:bg-primary/80 relative overflow-hidden">
+      className="py-16 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0">
         {/* Floating particles */}
@@ -63,7 +63,7 @@ export function CallToAction() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-3xl mx-auto text-center text-primary-foreground dark:text-white">
+        <div className="max-w-3xl mx-auto text-center text-primary-foreground">
           <div
             className={`transition-all duration-1000 ease-out ${
               isVisible
@@ -95,7 +95,7 @@ export function CallToAction() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Button
                 size="lg"
-                className="bg-background text-foreground dark:bg-white dark:text-slate-800 hover:bg-muted dark:hover:bg-slate-100 px-8 py-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group animate-button-glow"
+                className="bg-background text-foreground hover:bg-muted px-8 py-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group animate-button-glow"
                 onClick={() =>
                   window.open("https://wa.me/+1415523-8886?text=HELP", "_blank")
                 }>
@@ -127,21 +127,21 @@ export function CallToAction() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}>
-            <div className="flex justify-center space-x-8 text-sm text-primary-foreground dark:text-white">
+            <div className="flex justify-center space-x-8 text-sm text-primary-foreground">
               <div className="flex items-center animate-success-indicator">
-                <div className="w-2 h-2 bg-primary-foreground dark:bg-white rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Instant Setup</span>
               </div>
               <div
                 className="flex items-center animate-success-indicator"
                 style={{ animationDelay: "0.2s" }}>
-                <div className="w-2 h-2 bg-primary-foreground dark:bg-white rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Bank-Level Security</span>
               </div>
               <div
                 className="flex items-center animate-success-indicator"
                 style={{ animationDelay: "0.4s" }}>
-                <div className="w-2 h-2 bg-primary-foreground dark:bg-white rounded-full mr-2 animate-pulse"></div>
+                <div className="w-2 h-2 bg-primary-foreground rounded-full mr-2 animate-pulse"></div>
                 <span>Works Everywhere</span>
               </div>
             </div>

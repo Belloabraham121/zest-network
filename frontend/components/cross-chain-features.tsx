@@ -113,7 +113,14 @@ export function CrossChainFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-background relative overflow-hidden">
+      className="py-16 bg-gradient-to-b from-background via-background to-background/95 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent opacity-60 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/5 via-purple-900/5 to-blue-900/5"></div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+
       {/* Animated chain connections background */}
       <div className="absolute inset-0 opacity-5">
         <svg className="w-full h-full" viewBox="0 0 1000 600">

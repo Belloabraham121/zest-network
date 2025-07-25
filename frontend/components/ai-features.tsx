@@ -104,7 +104,14 @@ export function AIFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="py-16 bg-muted/30 relative overflow-hidden">
+      className="py-16 bg-gradient-to-b from-muted/30 via-background to-background/95 relative overflow-hidden">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/15 via-transparent to-transparent opacity-50 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/5 via-purple-900/5 to-indigo-900/5"></div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.015)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+
       {/* WhatsApp-themed background */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-10 w-32 h-32 border border-primary rounded-full animate-spin-slow"></div>

@@ -25,18 +25,18 @@ export function HeroSection() {
         clearInterval(typeInterval);
         setShowCursor(false);
       }
-    }, 100);
+    }, 120);
 
     // Cursor blinking
     const cursorInterval = setInterval(() => {
       setShowCursor((prev) => !prev);
-    }, 500);
+    }, 600);
 
-    // Chat messages animation with AI responses
-    setTimeout(() => setChatMessages([1]), 2000);
-    setTimeout(() => setChatMessages([1, 2]), 3500);
-    setTimeout(() => setChatMessages([1, 2, 3]), 5000);
-    setTimeout(() => setChatMessages([1, 2, 3, 4]), 6500);
+    // Chat messages animation
+    setTimeout(() => setChatMessages([1]), 1800);
+    setTimeout(() => setChatMessages([1, 2]), 3200);
+    setTimeout(() => setChatMessages([1, 2, 3]), 4600);
+    setTimeout(() => setChatMessages([1, 2, 3, 4]), 6000);
 
     return () => {
       clearInterval(typeInterval);
@@ -45,93 +45,210 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section id="home" className="pt-24 pb-16 bg-muted/30 overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div
-            className={`transition-all duration-1000 ease-out ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground leading-tight mb-8">
-              <span className="inline-block">
-                {typewriterText}
-                {showCursor && <span className="animate-pulse">|</span>}
-              </span>
-              <br />
-              <span
-                className="font-medium text-primary animate-fade-in-up"
-                style={{ animationDelay: "3s", animationFillMode: "both" }}>
-                AI-powered crypto on WhatsApp.
-              </span>
-            </h1>
-          </div>
+    <section
+      id="home"
+      className="pt-24 pb-20 bg-gradient-to-b from-background via-background to-background/95 relative overflow-hidden min-h-screen flex items-center">
+      {/* Enhanced background effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-primary/30 via-transparent to-transparent opacity-80 animate-pulse"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/10 to-indigo-900/20"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]"></div>
 
-          <div
-            className={`transition-all duration-1000 ease-out delay-200 ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
-              Send, stake, swap, and bridge crypto across 20+ blockchains using
-              WhatsApp, SMS, or any phone. AI-powered assistance makes
-              cross-chain DeFi simple for everyone.
-            </p>
-          </div>
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-          <div
-            className={`transition-all duration-1000 ease-out delay-400 ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
-            }`}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => {
+          // Use deterministic values based on index to avoid hydration mismatch
+          const left = (i * 5.5) % 100;
+          const top = (i * 3.7) % 100;
+          const animationDelay = (i * 0.15) % 3;
+          const animationDuration = 2 + ((i * 0.1) % 2);
+
+          return (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                animationDelay: `${animationDelay}s`,
+                animationDuration: `${animationDuration}s`,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left side - Content */}
+          <div className="text-left">
+            {/* Pre-headline */}
+            <div
+              className={`transition-opacity duration-1000 ease-out ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}>
+              {/* <div className="text-sm font-medium text-primary/80 mb-4 tracking-wider">
+                [ 20+ blockchains supported ]
+              </div> */}
+            </div>
+
+            {/* Hero Title */}
+            <div
+              className={`transition-opacity duration-1000 ease-out ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-6 tracking-tight">
+                <div className="whitespace-nowrap">
+                  <span className="inline">
+                    {typewriterText}
+                    {showCursor && (
+                      <span className="animate-pulse text-primary">|</span>
+                    )}
+                  </span>
+                </div>
+                <div
+                  className="text-2xl sm:text-3xl lg:text-4xl font-medium text-primary animate-fade-in bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent"
+                  style={{ animationDelay: "2s", animationFillMode: "both" }}>
+                  AI-powered crypto on WhatsApp.
+                </div>
+              </h1>
+            </div>
+
+            {/* Hero Description */}
+            <div
+              className={`transition-opacity duration-1000 ease-out delay-200 ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}>
+              <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl leading-relaxed">
+                Simplified cross-chain transactions with unrivaled market access
+                via Zest. Effortlessly send, stake, swap, and bridge crypto
+                across 20+ blockchains using WhatsApp, SMS, or any phone.
+              </p>
+            </div>
+
+            {/* Call-to-Action Button */}
+            <div
+              className={`transition-opacity duration-1000 ease-out delay-400 ${
+                isVisible ? "opacity-100" : "opacity-0"
+              }`}>
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 animate-pulse-subtle"
+                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white px-8 py-6 rounded-xl text-lg font-semibold transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:scale-105 relative overflow-hidden group border border-primary/30"
                 onClick={() =>
                   window.open("https://wa.me/+14155238886?text=Help", "_blank")
                 }>
-                <MessageCircle className="w-4 h-4 mr-2 animate-bounce-subtle" />
-                Chat with Zest AI
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-border text-foreground hover:bg-muted px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:scale-105">
-                <Phone className="w-4 h-4 mr-2 animate-wiggle" />
-                Or dial *777#
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-3 bg-transparent transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Text SMS
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 -translate-x-full group-hover:translate-x-full"></div>
+                <span className="relative z-10">Get Started →</span>
               </Button>
             </div>
           </div>
 
-          {/* Enhanced WhatsApp mockup with AI conversation */}
+          {/* Right side - Visual Elements */}
+          <div className="relative lg:block hidden lg:ml-16">
+            {/* Floating icons with glow effects */}
+            <div className="relative w-full h-full">
+              {/* Light beam effect */}
+              <div className="absolute top-0 left-1/2 w-px h-full bg-gradient-to-b from-primary/50 via-primary/30 to-transparent transform -translate-x-1/2"></div>
+
+              {/* Floating icons */}
+              <div className="relative space-y-12 w-full">
+                {/* Top icon - Ethereum-like */}
+                <div className="relative transform translate-x-12 -translate-y-8">
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500/20 to-purple-600/20 backdrop-blur-sm rounded-2xl border border-blue-500/30 shadow-2xl shadow-blue-500/20 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center">
+                      <div className="w-10 h-10 border-2 border-white rounded-lg transform rotate-45"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Middle icon - Token symbol */}
+                <div className="relative transform -translate-x-8">
+                  <div className="w-28 h-28 bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 flex items-center justify-center">
+                    <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-white rounded-full flex items-center justify-center">
+                        <div className="w-4 h-4 bg-white rounded-sm"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom icon - Chart bars */}
+                <div className="relative transform translate-x-10 translate-y-8">
+                  <div className="w-24 h-24 bg-gradient-to-br from-indigo-500/20 to-blue-600/20 backdrop-blur-sm rounded-2xl border border-indigo-500/30 shadow-2xl shadow-indigo-500/20 flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl flex items-center justify-center space-x-1">
+                      <div className="w-1 h-6 bg-white rounded-sm"></div>
+                      <div className="w-1 h-8 bg-white rounded-sm"></div>
+                      <div className="w-1 h-4 bg-white rounded-sm"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional substantial visual elements */}
+                <div className="absolute top-1/4 right-0 w-24 h-24 bg-gradient-to-br from-green-500/20 to-emerald-600/20 rounded-2xl border border-green-500/30 shadow-2xl shadow-green-500/20 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white rounded-lg"></div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-1/4 right-4 w-20 h-20 bg-gradient-to-br from-orange-500/20 to-red-600/20 rounded-2xl border border-orange-500/30 shadow-2xl shadow-orange-500/20 flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white rounded-full"></div>
+                  </div>
+                </div>
+
+                {/* More substantial floating elements */}
+                <div className="absolute top-1/3 right-8 w-16 h-16 bg-gradient-to-br from-cyan-500/25 to-blue-600/25 rounded-2xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
+                    <div className="w-4 h-4 border-2 border-white transform rotate-45"></div>
+                  </div>
+                </div>
+
+                <div className="absolute top-2/3 right-2 w-14 h-14 bg-gradient-to-br from-pink-500/25 to-purple-600/25 rounded-2xl border border-pink-500/30 shadow-2xl shadow-pink-500/20 flex items-center justify-center">
+                  <div className="w-7 h-7 bg-gradient-to-br from-pink-400 to-purple-500 rounded-xl flex items-center justify-center">
+                    <div className="w-3.5 h-3.5 border-2 border-white rounded-full"></div>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-1/3 right-12 w-18 h-18 bg-gradient-to-br from-yellow-500/25 to-orange-600/25 rounded-2xl border border-yellow-500/30 shadow-2xl shadow-yellow-500/20 flex items-center justify-center">
+                  <div className="w-9 h-9 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+                    <div className="w-4.5 h-4.5 border-2 border-white rounded-lg"></div>
+                  </div>
+                </div>
+
+                {/* Larger floating dots with glow */}
+                <div className="absolute top-1/6 right-6 w-3 h-3 bg-white/40 rounded-full shadow-lg shadow-white/20"></div>
+                <div className="absolute top-1/2 right-16 w-2.5 h-2.5 bg-white/35 rounded-full shadow-lg shadow-white/15"></div>
+                <div className="absolute bottom-1/6 right-10 w-2 h-2 bg-white/45 rounded-full shadow-lg shadow-white/25"></div>
+                <div className="absolute bottom-1/3 right-20 w-3.5 h-3.5 bg-white/30 rounded-full shadow-lg shadow-white/10"></div>
+
+                {/* Substantial connection lines with glow */}
+                <div className="absolute top-1/4 right-12 w-0.5 h-20 bg-gradient-to-b from-primary/50 to-transparent shadow-lg shadow-primary/30"></div>
+                <div className="absolute bottom-1/2 right-8 w-0.5 h-16 bg-gradient-to-b from-primary/40 to-transparent shadow-lg shadow-primary/25"></div>
+                <div className="absolute top-3/4 right-16 w-0.5 h-12 bg-gradient-to-b from-primary/45 to-transparent shadow-lg shadow-primary/20"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* WhatsApp Mockup - Mobile only */}
+        <div className="lg:hidden mt-12">
           <div
-            className={`transition-all duration-1000 ease-out delay-600 ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+            className={`transition-opacity duration-1000 ease-out delay-600 ${
+              isVisible ? "opacity-100" : "opacity-0"
             }`}>
             <div className="max-w-sm mx-auto">
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-xl hover:shadow-2xl transition-shadow duration-300 animate-float">
-                <div className="bg-muted rounded-xl p-4">
-                  <div className="flex items-center mb-4 pb-3 border-b border-border">
-                    <div className="w-8 h-8 bg-primary/20 rounded-full mr-3 flex items-center justify-center animate-pulse-ring">
-                      <div className="w-4 h-4 bg-primary rounded-full"></div>
+              <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-6 border border-border/50 shadow-2xl">
+                <div className="bg-muted/50 rounded-xl p-5">
+                  <div className="flex items-center mb-4 pb-3 border-b border-border/50">
+                    <div className="w-10 h-10 bg-primary rounded-full mr-3 flex items-center justify-center">
+                      <span className="text-primary-foreground font-medium text-sm">
+                        ZA
+                      </span>
                     </div>
                     <div>
-                      <span className="font-medium text-foreground">
+                      <span className="font-semibold text-foreground">
                         Zest AI
                       </span>
                       <div className="text-xs text-muted-foreground">
@@ -140,49 +257,51 @@ export function HeroSection() {
                     </div>
                   </div>
 
-                  <div className="space-y-3 text-sm">
+                  <div className="space-y-4 text-sm">
                     <div
-                      className={`bg-card rounded-lg p-3 text-left border border-border transition-all duration-500 ${
+                      className={`bg-muted/50 rounded-lg p-3 text-left transition-all duration-500 ${
                         chatMessages.includes(1)
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
                       }`}>
-                      <p className="text-foreground">Swap 100 USDC to SOL</p>
+                      <p className="text-foreground font-medium">
+                        Swap 100 USDC to SOL
+                      </p>
                     </div>
 
                     <div
-                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-300 ${
+                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-200 ${
                         chatMessages.includes(2)
-                          ? "opacity-100 translate-x-0 scale-100"
-                          : "opacity-0 translate-x-4 scale-95"
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 translate-x-4"
                       }`}>
-                      <p className="animate-type-in">
-                        I&apos;ll swap 100 USDC to SOL! 🔄
+                      <p className="font-medium">
+                        Got it! Swapping 100 USDC to SOL... 🔄
                       </p>
-                      <p className="text-primary-foreground/70 text-xs mt-1">
+                      <p className="text-primary-foreground/80 text-xs mt-1">
                         Best rate: 1 SOL = $142.50
                       </p>
                     </div>
 
                     <div
-                      className={`bg-card rounded-lg p-3 text-left border border-border transition-all duration-500 delay-500 ${
+                      className={`bg-muted/50 rounded-lg p-3 text-left transition-all duration-500 delay-400 ${
                         chatMessages.includes(3)
                           ? "opacity-100 translate-x-0"
                           : "opacity-0 -translate-x-4"
                       }`}>
-                      <p className="text-foreground">Yes, do it</p>
+                      <p className="text-foreground font-medium">
+                        Looks good, proceed
+                      </p>
                     </div>
 
                     <div
-                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-700 ${
+                      className={`bg-primary text-primary-foreground rounded-lg p-3 text-left transition-all duration-500 delay-600 ${
                         chatMessages.includes(4)
-                          ? "opacity-100 translate-x-0 scale-100"
-                          : "opacity-0 translate-x-4 scale-95"
+                          ? "opacity-100 translate-x-0"
+                          : "opacity-0 translate-x-4"
                       }`}>
-                      <p className="animate-type-in">
-                        ✅ Swapped! Got 0.702 SOL
-                      </p>
-                      <p className="text-primary-foreground/70 text-xs mt-1">
+                      <p className="font-medium">✅ Done! You got 0.702 SOL</p>
+                      <p className="text-primary-foreground/80 text-xs mt-1">
                         Via LiFi • Fee: $0.15
                       </p>
                     </div>
@@ -195,10 +314,10 @@ export function HeroSection() {
       </div>
 
       <style jsx>{`
-        @keyframes fade-in-up {
+        @keyframes fade-in {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(12px);
           }
           to {
             opacity: 1;
@@ -206,102 +325,8 @@ export function HeroSection() {
           }
         }
 
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        @keyframes pulse-ring {
-          0% {
-            box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.4);
-          }
-          70% {
-            box-shadow: 0 0 0 10px rgba(20, 184, 166, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
-          }
-        }
-
-        @keyframes bounce-subtle {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-2px);
-          }
-        }
-
-        @keyframes wiggle {
-          0%,
-          100% {
-            transform: rotate(0deg);
-          }
-          25% {
-            transform: rotate(-3deg);
-          }
-          75% {
-            transform: rotate(3deg);
-          }
-        }
-
-        @keyframes pulse-subtle {
-          0%,
-          100% {
-            box-shadow: 0 0 0 0 rgba(51, 65, 85, 0.3);
-          }
-          50% {
-            box-shadow: 0 0 0 8px rgba(51, 65, 85, 0);
-          }
-        }
-
-        @keyframes type-in {
-          from {
-            width: 0;
-          }
-          to {
-            width: 100%;
-          }
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-pulse-ring {
-          animation: pulse-ring 2s infinite;
-        }
-
-        .animate-bounce-subtle {
-          animation: bounce-subtle 2s infinite;
-        }
-
-        .animate-wiggle {
-          animation: wiggle 1s ease-in-out infinite;
-        }
-
-        .animate-pulse-subtle {
-          animation: pulse-subtle 2s infinite;
-        }
-
-        .animate-type-in {
-          overflow: hidden;
-          white-space: nowrap;
-          animation: type-in 1s steps(20, end);
-        }
-
         .animate-fade-in {
-          animation: fade-in-up 0.5s ease-out;
+          animation: fade-in 0.8s ease-out;
         }
       `}</style>
     </section>

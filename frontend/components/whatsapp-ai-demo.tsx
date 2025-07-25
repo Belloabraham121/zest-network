@@ -258,27 +258,27 @@ export function WhatsAppAIDemo() {
             {/* WhatsApp Interface */}
             <div>
               <Card className="bg-card shadow-2xl border border-border">
-                <div className="bg-primary dark:bg-slate-800 p-4 rounded-t-lg">
+                <div className="bg-primary p-4 rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-primary-foreground dark:bg-white rounded-full flex items-center justify-center mr-3">
-                        <MessageCircle className="w-6 h-6 text-primary dark:text-slate-800" />
+                      <div className="w-10 h-10 bg-primary-foreground rounded-full flex items-center justify-center mr-3">
+                        <MessageCircle className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <div className="font-medium text-primary-foreground dark:text-white">
+                        <div className="font-medium text-primary-foreground">
                           Zest AI
                         </div>
-                        <div className="text-xs text-primary-foreground/80 dark:text-white/80">
+                        <div className="text-xs text-primary-foreground/80">
                           Online • AI Assistant
                         </div>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <button className="w-8 h-8 bg-primary-foreground/20 dark:bg-white/20 rounded-full flex items-center justify-center">
-                        <Camera className="w-4 h-4 text-primary-foreground dark:text-white" />
+                      <button className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+                        <Camera className="w-4 h-4 text-primary-foreground" />
                       </button>
-                      <button className="w-8 h-8 bg-primary-foreground/20 dark:bg-white/20 rounded-full flex items-center justify-center">
-                        <Mic className="w-4 h-4 text-primary-foreground dark:text-white" />
+                      <button className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+                        <Mic className="w-4 h-4 text-primary-foreground" />
                       </button>
                     </div>
                   </div>
@@ -305,10 +305,15 @@ export function WhatsAppAIDemo() {
                           </p>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs opacity-75">
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {message.timestamp
+                                .getHours()
+                                .toString()
+                                .padStart(2, "0")}
+                              :
+                              {message.timestamp
+                                .getMinutes()
+                                .toString()
+                                .padStart(2, "0")}
                             </span>
                             {message.isUser && (
                               <span className="text-xs opacity-75">✓✓</span>

@@ -5,8 +5,10 @@ import {
   getQuote,
   executeRoute,
   getStatus,
+  createConfig,
   ChainId,
   ChainType,
+  EVM,
 } from "@lifi/sdk";
 import {
   lifiConfig,
@@ -21,39 +23,36 @@ import {
   LiFiChain,
   LiFiToken,
   LiFiExecutionStatus,
-  CrossChainTransfer,
 } from "../types";
 import { ethers } from "ethers";
+import { createWalletClient, http, Chain } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import {
+  mainnet,
+  polygon,
+  arbitrum,
+  optimism,
+  base,
+  mantle,
+} from "viem/chains";
+import { walletService } from "./wallet.service";
+import { env } from "../config/env";
 
-/**
- * LI.FI Service Class
- * Main service wrapper for LI.FI SDK integration
- */
 export class LiFiService {
-  private initialized: boolean = false;
-  private initializing: boolean = false;
+  private initialized = false;
+  private initializing = false;
   private initializationPromise: Promise<void> | null = null;
   private chainsCache: Map<number, LiFiChain> = new Map();
   private tokensCache: Map<string, LiFiToken[]> = new Map();
   private toolsCache: any = null;
   private cacheTimestamps: Map<string, number> = new Map();
+  private currentUserAddress: string | null = null;
 
-  constructor() {
-    // Don't initialize in constructor - use lazy initialization
-  }
+  constructor() {}
 
-  /**
-   * Initialize the LI.FI service (lazy initialization)
-   */
   private async initialize(): Promise<void> {
-    if (this.initialized) {
-      return;
-    }
-
-    if (this.initializing) {
-      return this.initializationPromise!;
-    }
-
+    if (this.initialized) return;
+    if (this.initializing) return this.initializationPromise!;
     this.initializing = true;
     this.initializationPromise = this._doInitialize();
 
@@ -64,19 +63,99 @@ export class LiFiService {
     }
   }
 
-  /**
-   * Actual initialization logic
-   */
   private async _doInitialize(): Promise<void> {
     try {
       validateLiFiConfig();
+      const chains: Chain[] = [
+        mainnet,
+        arbitrum,
+        optimism,
+        polygon,
+        base,
+        mantle,
+      ];
+
+      createConfig({
+        integrator: lifiConfig.integrator,
+        apiKey: lifiConfig.apiKey,
+        apiUrl: lifiConfig.apiUrl,
+        providers: [
+          EVM({
+            getWalletClient: async (chainId?: number) => {
+              if (!this.currentUserAddress) {
+                throw new Error(
+                  "User address is required to create wallet client"
+                );
+              }
+
+              console.log('🔍 Debug - Creating wallet client for:', {
+                currentUserAddress: this.currentUserAddress,
+                chainId
+              });
+
+              const userPrivateKey =
+                await walletService.getDecryptedPrivateKeyByAddress(
+                  this.currentUserAddress
+                );
+              if (!userPrivateKey) {
+                throw new Error(
+                  `No private key found for address: ${this.currentUserAddress}`
+                );
+              }
+
+              const privateKey = userPrivateKey as `0x${string}`;
+              const account = privateKeyToAccount(privateKey);
+
+              console.log('🔍 Debug - Wallet client created with address:', account.address);
+              console.log('🔍 Debug - Address mismatch check:', {
+                requestedAddress: this.currentUserAddress,
+                derivedAddress: account.address,
+                addressesMatch: this.currentUserAddress.toLowerCase() === account.address.toLowerCase()
+              });
+
+              return createWalletClient({
+                account,
+                chain: chainId
+                  ? chains.find((c) => c.id === chainId) || mantle
+                  : mantle,
+                transport: http(),
+              });
+            },
+            switchChain: async (chainId: number, userAddress?: string) => {
+              const targetChain = chains.find((chain) => chain.id === chainId);
+              if (!targetChain)
+                throw new Error(`Unsupported chain ID: ${chainId}`);
+              if (!userAddress)
+                throw new Error("User address is required to switch chains");
+
+              const userPrivateKey =
+                await walletService.getDecryptedPrivateKeyByAddress(
+                  userAddress
+                );
+              if (!userPrivateKey) {
+                throw new Error(
+                  `No private key found for address: ${userAddress}`
+                );
+              }
+
+              const privateKey = userPrivateKey as `0x${string}`;
+              const account = privateKeyToAccount(privateKey);
+
+              return createWalletClient({
+                account,
+                chain: targetChain,
+                transport: http(),
+              });
+            },
+          }),
+        ],
+      });
+
       this.initialized = true;
       console.log(
-        "✅ LI.FI Service initialized successfully (lazy loading enabled)"
+        "✅ LI.FI Service initialized successfully (no relayer fallback)"
       );
-
-      // Skip pre-loading to avoid hitting rate limits
-      // Data will be loaded on-demand when needed
+      this.warmupCache();
     } catch (error) {
       console.error("❌ Failed to initialize LI.FI Service:", error);
       this.initialized = false;
@@ -84,116 +163,53 @@ export class LiFiService {
     }
   }
 
-  /**
-   * Pre-load chains, tokens, and tools data
-   */
-  private async preloadData(): Promise<void> {
-    try {
-      console.log("🔄 Pre-loading LI.FI data...");
-
-      // Load chains and tools sequentially to avoid rate limiting
-      try {
-        await this.loadChains();
-        // Small delay between requests
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        await this.loadTools();
-      } catch (error) {
-        console.warn("⚠️ Failed to pre-load some LI.FI data:", error);
-        // Continue without throwing - service can still function
-      }
-
-      console.log("✅ LI.FI data pre-loaded successfully");
-    } catch (error) {
-      console.warn("⚠️ Failed to pre-load some LI.FI data:", error);
-      // Don't throw here, service can still function
-    }
-  }
-
-  /**
-   * Load and cache chains data
-   */
   private async loadChains(): Promise<void> {
     try {
       const chains = await executeWithRateLimit(() =>
         getChains(getLiFiRequestOptions())
       );
-
-      // Cache chains by ID
-      chains.forEach((chain) => {
-        this.chainsCache.set(chain.id, chain as LiFiChain);
-      });
-
+      chains.forEach((chain) =>
+        this.chainsCache.set(chain.id, chain as LiFiChain)
+      );
       this.cacheTimestamps.set("chains", Date.now());
-      console.log(`📊 Loaded ${chains.length} chains`);
     } catch (error) {
       console.error("❌ Failed to load chains:", error);
-      // Don't throw during initialization - service can still function
     }
   }
 
-  /**
-   * Load and cache tools data
-   */
   private async loadTools(): Promise<void> {
     try {
       const tools = await executeWithRateLimit(() =>
         getTools(getLiFiRequestOptions())
       );
-
       this.toolsCache = tools;
       this.cacheTimestamps.set("tools", Date.now());
-
-      const bridgeCount = tools.bridges?.length || 0;
-      const exchangeCount = tools.exchanges?.length || 0;
-      console.log(
-        `🔧 Loaded ${bridgeCount} bridges and ${exchangeCount} exchanges`
-      );
     } catch (error) {
       console.error("❌ Failed to load tools:", error);
-      // Don't throw during initialization - service can still function
     }
   }
 
-  /**
-   * Check if service is ready
-   */
   public isReady(): boolean {
     return this.initialized;
   }
 
-  /**
-   * Get supported chains
-   */
   public async getChains(): Promise<LiFiChain[]> {
     await this.ensureInitialized();
-
-    // Check cache freshness
     const cacheAge = Date.now() - (this.cacheTimestamps.get("chains") || 0);
-    if (cacheAge > lifiConfig.cacheTtl * 1000) {
-      await this.loadChains();
-    }
-
+    if (cacheAge > lifiConfig.cacheTtl * 1000) await this.loadChains();
     return Array.from(this.chainsCache.values());
   }
 
-  /**
-   * Get chain by ID
-   */
   public async getChainById(chainId: number): Promise<LiFiChain | null> {
     const chains = await this.getChains();
     return this.chainsCache.get(chainId) || null;
   }
 
-  /**
-   * Get tokens for a specific chain
-   */
   public async getTokens(chainId: number): Promise<LiFiToken[]> {
     await this.ensureInitialized();
-
     const cacheKey = `tokens_${chainId}`;
     const cacheAge = Date.now() - (this.cacheTimestamps.get(cacheKey) || 0);
 
-    // Check cache freshness
     if (
       cacheAge < lifiConfig.cacheTtl * 1000 &&
       this.tokensCache.has(cacheKey)
@@ -205,14 +221,9 @@ export class LiFiService {
       const tokens = await executeWithRateLimit(() =>
         getTokens({ chains: [chainId], ...getLiFiRequestOptions() })
       );
-
       const chainTokens = tokens.tokens[chainId] || [];
       this.tokensCache.set(cacheKey, chainTokens as LiFiToken[]);
       this.cacheTimestamps.set(cacheKey, Date.now());
-
-      console.log(
-        `💰 Loaded ${chainTokens.length} tokens for chain ${chainId}`
-      );
       return chainTokens as LiFiToken[];
     } catch (error) {
       console.error(`❌ Failed to load tokens for chain ${chainId}:`, error);
@@ -220,9 +231,6 @@ export class LiFiService {
     }
   }
 
-  /**
-   * Find token by symbol on a chain
-   */
   public async findToken(
     chainId: number,
     symbol: string
@@ -235,63 +243,55 @@ export class LiFiService {
     );
   }
 
-  /**
-   * Get available tools (bridges and exchanges)
-   */
   public async getTools(): Promise<any> {
     await this.ensureInitialized();
-
-    // Check cache freshness
     const cacheAge = Date.now() - (this.cacheTimestamps.get("tools") || 0);
-    if (cacheAge > lifiConfig.cacheTtl * 1000) {
-      await this.loadTools();
-    }
-
+    if (cacheAge > lifiConfig.cacheTtl * 1000) await this.loadTools();
     return this.toolsCache;
   }
 
-  /**
-   * Get quote for a swap/bridge transaction
-   */
   public async getQuote(request: LiFiQuoteRequest): Promise<LiFiQuoteResponse> {
     await this.ensureInitialized();
+    await this.validateQuoteRequest(request);
 
     try {
-      // Validate request
-      await this.validateQuoteRequest(request);
+      // Set user address for quote generation to use user's private key
+      if (request.fromAddress) {
+        this.currentUserAddress = request.fromAddress;
+        console.log('🔍 Debug - Quote generation with address:', {
+          fromAddress: request.fromAddress,
+          currentUserAddress: this.currentUserAddress
+        });
+      }
 
-      const quoteRequest = {
+      console.log('🔍 Debug - About to call LiFi getQuote with request:', {
+        fromAddress: request.fromAddress,
         fromChain: request.fromChain,
         toChain: request.toChain,
         fromToken: request.fromToken,
         toToken: request.toToken,
-        fromAmount: request.fromAmount,
-        fromAddress: request.fromAddress,
-        toAddress: request.toAddress,
-        slippage: request.slippage || lifiConfig.slippageTolerance,
-        allowBridges: request.allowBridges,
-        denyBridges: request.denyBridges,
-        allowExchanges: request.allowExchanges,
-        denyExchanges: request.denyExchanges,
-        ...getLiFiRequestOptions(),
-      };
+        fromAmount: request.fromAmount
+      });
 
-      const quote = await executeWithRateLimit(() => getQuote(quoteRequest));
-
-      console.log(
-        `💱 Generated quote: ${request.fromAmount} ${request.fromToken} → ${quote.estimate.toAmount} ${request.toToken}`
+      const quote = await executeWithRateLimit(() =>
+        getQuote({ ...request, ...getLiFiRequestOptions() })
       );
-
+      
+      console.log('🔍 Debug - Quote generated with action:', {
+        actionFromAddress: quote.action?.fromAddress,
+        requestFromAddress: request.fromAddress,
+        fullQuoteAction: quote.action
+      });
       return quote as LiFiQuoteResponse;
     } catch (error) {
       console.error("❌ Failed to get quote:", error);
       throw this.handleError(error, "getQuote");
+    } finally {
+      // Clear user address after quote generation
+      this.currentUserAddress = null;
     }
   }
 
-  /**
-   * Execute a route/transaction
-   */
   public async executeRoute(
     route: any,
     settings?: any
@@ -299,48 +299,87 @@ export class LiFiService {
     await this.ensureInitialized();
 
     try {
-      const executionSettings = {
-        updateCallback: (updatedRoute: any) => {
-          console.log(
-            "🔄 Route execution update:",
-            updatedRoute.steps?.[0]?.execution?.status
-          );
-        },
-        switchChainHook: async (chainId: number) => {
-          console.log(`🔄 Switching to chain ${chainId}`);
-          // Custom chain switching logic can be added here
-          return Promise.resolve();
-        },
-        acceptSlippageUpdateHook: async (slippageUpdate: any) => {
-          console.log("⚠️ Slippage update required:", slippageUpdate);
-          // Auto-accept reasonable slippage updates
-          return slippageUpdate.slippage < 0.05; // Accept up to 5% slippage
-        },
-        ...settings,
-      };
+      if (!route || !Array.isArray(route.steps) || route.steps.length === 0) {
+        throw new Error("Route must contain valid steps array for execution");
+      }
+
+      this.currentUserAddress = route.fromAddress;
+      
+      // Debug: Log addresses for troubleshooting
+      console.log('🔍 Debug - Route execution addresses:', {
+        routeFromAddress: route.fromAddress,
+        currentUserAddress: this.currentUserAddress,
+        actionFromAddress: route.action?.fromAddress,
+        actionFromToken: route.action?.fromToken?.address
+      });
 
       const result = await executeWithRateLimit(() =>
-        executeRoute(route, executionSettings)
-      );
+        executeRoute(route, {
+          ...settings,
+          disableMessageSigning: settings?.disableMessageSigning ?? false,
+          updateCallback: (updatedRoute: any) => {
+            console.log(
+              "🔄 Route execution update:",
+              updatedRoute.steps?.[0]?.execution?.status
+            );
+          },
+          switchChainHook: async (chainId: number) => {
+            const supportedChains = [
+              mainnet,
+              polygon,
+              arbitrum,
+              optimism,
+              base,
+              mantle,
+            ];
+            const targetChain = supportedChains.find(
+              (chain) => chain.id === chainId
+            );
+            if (!targetChain)
+              throw new Error(`Unsupported chain ID: ${chainId}`);
 
-      console.log("✅ Route execution completed:", result);
+            if (!this.currentUserAddress) {
+              throw new Error("User address is required for chain switching");
+            }
+
+            const userPrivateKey =
+              await walletService.getDecryptedPrivateKeyByAddress(
+                this.currentUserAddress
+              );
+            if (!userPrivateKey) {
+              throw new Error(
+                `No private key found for address: ${this.currentUserAddress}`
+              );
+            }
+
+            const account = privateKeyToAccount(
+              userPrivateKey as `0x${string}`
+            );
+            return createWalletClient({
+              account,
+              chain: targetChain,
+              transport: http(),
+            });
+          },
+          acceptSlippageUpdateHook: async (slippageUpdate: any) =>
+            slippageUpdate.slippage < 0.05,
+        })
+      );
 
       return {
         status: "DONE",
-        txHash:
-          (result.steps?.[0]?.execution as any)?.transactionHash || "unknown",
+        txHash: result.steps?.[0]?.execution?.process?.[0]?.txHash || "unknown",
         fromAmount: route.fromAmount,
         toAmount: route.toAmount,
-      } as LiFiExecutionStatus;
+      };
     } catch (error) {
       console.error("❌ Failed to execute route:", error);
       throw this.handleError(error, "executeRoute");
+    } finally {
+      this.currentUserAddress = null;
     }
   }
 
-  /**
-   * Get execution status of a transaction
-   */
   public async getExecutionStatus(
     txHash: string,
     bridge?: string
@@ -363,51 +402,37 @@ export class LiFiService {
         gasUsed: (status as any).sending?.gasUsed,
         gasPrice: (status as any).sending?.gasPrice,
         timestamp: (status as any).sending?.timestamp,
-      } as LiFiExecutionStatus;
+      };
     } catch (error) {
       console.error("❌ Failed to get execution status:", error);
       throw this.handleError(error, "getExecutionStatus");
     }
   }
 
-  /**
-   * Convert amount to wei format using token decimals
-   */
   public async convertAmountToWei(
     amount: string,
     tokenSymbol: string,
     chainId: number
   ): Promise<string> {
     try {
-      // Get tokens for the chain
+      const { getTokenConfig } = await import("../config/tokens");
+      const localToken = getTokenConfig(tokenSymbol);
+      if (localToken) {
+        return ethers.parseUnits(amount, localToken.decimals).toString();
+      }
+
       const tokens = await this.getTokens(chainId);
-      
-      // Find the token by symbol
       const token = tokens.find(
         (t) => t.symbol.toLowerCase() === tokenSymbol.toLowerCase()
       );
-      
-      if (!token) {
-        // Default to 18 decimals for unknown tokens
-        console.warn(`Token ${tokenSymbol} not found on chain ${chainId}, using 18 decimals`);
-        return ethers.parseUnits(amount, 18).toString();
-      }
-      
-      // Convert amount to wei using token decimals
-      const weiAmount = ethers.parseUnits(amount, token.decimals);
-      return weiAmount.toString();
+      const decimals = token?.decimals ?? 18;
+      return ethers.parseUnits(amount, decimals).toString();
     } catch (error) {
-      console.error(`Error converting amount to wei:`, error);
-      // Fallback to 18 decimals
       return ethers.parseUnits(amount, 18).toString();
     }
   }
 
-  /**
-   * Validate quote request
-   */
   private async validateQuoteRequest(request: LiFiQuoteRequest): Promise<void> {
-    // Validate chains are supported
     const fromChainId =
       typeof request.fromChain === "string"
         ? parseInt(request.fromChain)
@@ -418,69 +443,56 @@ export class LiFiService {
         : request.toChain;
 
     const chains = await this.getChains();
-    const fromChain = chains.find((c) => c.id === fromChainId);
-    const toChain = chains.find((c) => c.id === toChainId);
-
-    if (!fromChain) {
+    if (!chains.find((c) => c.id === fromChainId)) {
       throw new Error(`Unsupported source chain: ${request.fromChain}`);
     }
-
-    if (!toChain) {
+    if (!chains.find((c) => c.id === toChainId)) {
       throw new Error(`Unsupported destination chain: ${request.toChain}`);
     }
 
-    // Validate amount
     const amount = parseFloat(request.fromAmount);
-    if (isNaN(amount) || amount <= 0) {
+    if (isNaN(amount) || amount <= 0)
       throw new Error("Invalid amount specified");
-    }
 
-    // Validate slippage
     if (request.slippage && (request.slippage < 0 || request.slippage > 1)) {
       throw new Error("Slippage must be between 0 and 1");
     }
   }
 
-  /**
-   * Ensure service is initialized
-   */
   private async ensureInitialized(): Promise<void> {
-    if (!this.initialized) {
-      await this.initialize();
-    }
+    if (!this.initialized) await this.initialize();
   }
 
-  /**
-   * Handle and format errors
-   */
   private handleError(error: any, operation: string): Error {
     const errorMessage = error?.message || "Unknown error";
     const formattedError = new Error(
       `LI.FI ${operation} failed: ${errorMessage}`
     );
-
-    // Add additional error context
-    if (error?.response?.data) {
+    if (error?.response?.data)
       console.error("LI.FI API Error Details:", error.response.data);
-    }
-
     return formattedError;
   }
 
-  /**
-   * Clear all caches
-   */
+  public async warmupCache(): Promise<void> {
+    if (!this.initialized) return;
+    setTimeout(async () => {
+      try {
+        await this.loadChains();
+        await new Promise((r) => setTimeout(r, 1000));
+        await this.loadTools();
+      } catch (e) {
+        console.warn("⚠️ Cache warmup failed:", e);
+      }
+    }, 3000);
+  }
+
   public clearCache(): void {
     this.chainsCache.clear();
     this.tokensCache.clear();
     this.toolsCache = null;
     this.cacheTimestamps.clear();
-    console.log("🧹 LI.FI Service cache cleared");
   }
 
-  /**
-   * Get service health status
-   */
   public getHealthStatus() {
     return {
       initialized: this.initialized,
@@ -499,6 +511,5 @@ export class LiFiService {
   }
 }
 
-// Export singleton instance
 export const lifiService = new LiFiService();
 export default lifiService;

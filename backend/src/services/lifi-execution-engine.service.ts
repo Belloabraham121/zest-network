@@ -1,10 +1,17 @@
-import { lifiService, LiFiService } from './lifi.service';
-import { LiFiTransactionBuilderService, PreparedTransaction, TransactionValidation } from './lifi-transaction-builder.service';
-import { LiFiQuoteManagerService, QuoteResponse } from './lifi-quote-manager.service';
-import { LiFiChainManager } from './lifi-chain-manager.service';
-import { executeWithRateLimit } from './lifi-rate-limiter.service';
-import { logger } from '../utils/logger';
-import { LiFiExecutionStatus } from '../types';
+import { lifiService, LiFiService } from "./lifi.service";
+import {
+  LiFiTransactionBuilderService,
+  PreparedTransaction,
+  TransactionValidation,
+} from "./lifi-transaction-builder.service";
+import {
+  LiFiQuoteManagerService,
+  QuoteResponse,
+} from "./lifi-quote-manager.service";
+import { LiFiChainManager } from "./lifi-chain-manager.service";
+import { executeWithRateLimit } from "./lifi-rate-limiter.service";
+import { logger } from "../utils/logger";
+import { LiFiExecutionStatus } from "../types";
 
 export interface ExecutionRequest {
   quote: QuoteResponse;
@@ -41,7 +48,7 @@ export interface ExecutionResult {
 
 export interface ExecutionStep {
   stepId: string;
-  type: 'approval' | 'swap' | 'bridge' | 'cross-chain';
+  type: "approval" | "swap" | "bridge" | "cross-chain";
   status: ExecutionStatus;
   transactionHash?: string;
   gasUsed?: string;
@@ -56,16 +63,16 @@ export interface ExecutionStep {
   };
 }
 
-export type ExecutionStatus = 
-  | 'PENDING'
-  | 'STARTED'
-  | 'ACTION_REQUIRED'
-  | 'CHAIN_SWITCH_REQUIRED'
-  | 'APPROVAL_REQUIRED'
-  | 'EXECUTING'
-  | 'DONE'
-  | 'FAILED'
-  | 'CANCELLED';
+export type ExecutionStatus =
+  | "PENDING"
+  | "STARTED"
+  | "ACTION_REQUIRED"
+  | "CHAIN_SWITCH_REQUIRED"
+  | "APPROVAL_REQUIRED"
+  | "EXECUTING"
+  | "DONE"
+  | "FAILED"
+  | "CANCELLED";
 
 export interface ExecutionConfig {
   maxRetries: number;
@@ -99,7 +106,7 @@ class LiFiExecutionEngineService {
     timeoutMs: 300000, // 5 minutes
     enableFallback: true,
     autoApprove: false,
-    maxSlippageIncrease: 0.02 // 2%
+    maxSlippageIncrease: 0.02, // 2%
   };
 
   constructor() {
@@ -121,11 +128,11 @@ class LiFiExecutionEngineService {
     const startTime = Date.now();
 
     try {
-      logger.info('Starting transaction execution', {
+      logger.info("Starting transaction execution", {
         executionId,
         fromChain: request.quote.action?.fromChainId,
         toChain: request.quote.action?.toChainId,
-        tool: request.quote.tool?.name
+        tool: request.quote.tool?.name,
       });
 
       // Initialize execution monitor
@@ -156,29 +163,29 @@ class LiFiExecutionEngineService {
       // Clean up active execution
       this.activeExecutions.delete(executionId);
 
-      logger.info('Transaction execution completed', {
+      logger.info("Transaction execution completed", {
         executionId,
         success: result.success,
         transactionHash: result.transactionHash,
-        executionTime: result.executionTime
+        executionTime: result.executionTime,
       });
 
       return result;
     } catch (error) {
       const errorResult: ExecutionResult = {
         success: false,
-        status: 'FAILED',
+        status: "FAILED",
         error: error instanceof Error ? error.message : String(error),
         executionTime: Date.now() - startTime,
-        steps: []
+        steps: [],
       };
 
       this.executionHistory.set(executionId, errorResult);
       this.activeExecutions.delete(executionId);
 
-      logger.error('Transaction execution failed', {
+      logger.error("Transaction execution failed", {
         executionId,
-        error: errorResult.error
+        error: errorResult.error,
       });
 
       throw error;
@@ -188,7 +195,9 @@ class LiFiExecutionEngineService {
   /**
    * Get execution status
    */
-  async getExecutionStatus(executionId: string): Promise<ExecutionMonitor | null> {
+  async getExecutionStatus(
+    executionId: string
+  ): Promise<ExecutionMonitor | null> {
     return this.activeExecutions.get(executionId) || null;
   }
 
@@ -208,10 +217,10 @@ class LiFiExecutionEngineService {
       return false;
     }
 
-    execution.status = 'CANCELLED';
+    execution.status = "CANCELLED";
     execution.lastUpdate = Date.now();
 
-    logger.info('Execution cancelled', { executionId });
+    logger.info("Execution cancelled", { executionId });
     return true;
   }
 
@@ -224,16 +233,16 @@ class LiFiExecutionEngineService {
   ): Promise<ExecutionResult> {
     const history = this.executionHistory.get(executionId);
     if (!history || history.success) {
-      throw new Error('Cannot retry successful or non-existent execution');
+      throw new Error("Cannot retry successful or non-existent execution");
     }
 
     // Get original request from metadata
     const originalRequest = history.metadata?.originalRequest;
     if (!originalRequest) {
-      throw new Error('Original request not found in execution history');
+      throw new Error("Original request not found in execution history");
     }
 
-    logger.info('Retrying execution', { executionId });
+    logger.info("Retrying execution", { executionId });
     return this.executeTransaction(originalRequest, config);
   }
 
@@ -247,15 +256,18 @@ class LiFiExecutionEngineService {
   /**
    * Initialize execution monitoring
    */
-  private initializeExecution(executionId: string, request: ExecutionRequest): void {
+  private initializeExecution(
+    executionId: string,
+    request: ExecutionRequest
+  ): void {
     const monitor: ExecutionMonitor = {
       executionId,
-      status: 'PENDING',
+      status: "PENDING",
       progress: 0,
       currentStep: 0,
       totalSteps: this.calculateTotalSteps(request.quote),
       estimatedTimeRemaining: this.estimateExecutionTime(request.quote),
-      lastUpdate: Date.now()
+      lastUpdate: Date.now(),
     };
 
     this.activeExecutions.set(executionId, monitor);
@@ -274,7 +286,7 @@ class LiFiExecutionEngineService {
       gasLimit: request.gasSettings?.gasLimit,
       maxFeePerGas: request.gasSettings?.maxFeePerGas,
       maxPriorityFeePerGas: request.gasSettings?.maxPriorityFeePerGas,
-      slippageTolerance: request.slippageTolerance
+      slippageTolerance: request.slippageTolerance,
     });
 
     // Validate transaction
@@ -285,12 +297,12 @@ class LiFiExecutionEngineService {
     );
 
     if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
     }
 
     if (validation.warnings.length > 0) {
-      logger.warn('Execution validation warnings', {
-        warnings: validation.warnings
+      logger.warn("Execution validation warnings", {
+        warnings: validation.warnings,
       });
     }
   }
@@ -298,7 +310,9 @@ class LiFiExecutionEngineService {
   /**
    * Build transaction for execution
    */
-  private async buildExecutionTransaction(request: ExecutionRequest): Promise<PreparedTransaction> {
+  private async buildExecutionTransaction(
+    request: ExecutionRequest
+  ): Promise<PreparedTransaction> {
     return this.transactionBuilder.buildTransaction({
       quote: request.quote,
       fromAddress: request.fromAddress,
@@ -308,7 +322,7 @@ class LiFiExecutionEngineService {
       maxFeePerGas: request.gasSettings?.maxFeePerGas,
       maxPriorityFeePerGas: request.gasSettings?.maxPriorityFeePerGas,
       slippageTolerance: request.slippageTolerance,
-      allowInfiniteApproval: request.allowInfiniteApproval
+      allowInfiniteApproval: request.allowInfiniteApproval,
     });
   }
 
@@ -328,82 +342,94 @@ class LiFiExecutionEngineService {
     while (retryCount <= config.maxRetries) {
       try {
         // Update monitor
-        monitor.status = 'EXECUTING';
+        monitor.status = "EXECUTING";
         monitor.progress = 20;
         monitor.lastUpdate = Date.now();
 
+        // Transform quote to route format for LI.FI execution
+        // Use the original fromAddress from the request so the wallet that requested the quote signs the transaction
+        const route = {
+          ...request.quote,
+          steps: request.quote.includedSteps || [],
+          fromAmount: request.quote.estimate?.fromAmount || "0",
+          toAmount: request.quote.estimate?.toAmount || "0",
+          fromAddress: request.fromAddress, // Use the user's wallet address that requested the quote
+        };
+
         // Execute the route using LI.FI
         const executionResult = await executeWithRateLimit(async () => {
-          return await this.lifiService.executeRoute(request.quote, {
+          return await this.lifiService.executeRoute(route, {
+            disableMessageSigning: true, // Disable EIP-712 message signing to avoid wallet mismatch
             updateCallback: (updatedRoute: any) => {
               this.handleExecutionUpdate(executionId, updatedRoute, steps);
             },
             switchChainHook: async (chainId: number) => {
-              monitor.status = 'CHAIN_SWITCH_REQUIRED';
+              monitor.status = "CHAIN_SWITCH_REQUIRED";
               monitor.lastUpdate = Date.now();
-              logger.info('Chain switch required', { executionId, chainId });
+              logger.info("Chain switch required", { executionId, chainId });
               return Promise.resolve();
             },
             acceptSlippageUpdateHook: async (slippageUpdate: any) => {
-              const increase = slippageUpdate.slippage - (request.slippageTolerance || 0.005);
+              const increase =
+                slippageUpdate.slippage - (request.slippageTolerance || 0.005);
               if (increase <= config.maxSlippageIncrease) {
-                logger.info('Auto-accepting slippage update', {
+                logger.info("Auto-accepting slippage update", {
                   executionId,
-                  newSlippage: slippageUpdate.slippage
+                  newSlippage: slippageUpdate.slippage,
                 });
                 return true;
               }
-              
-              monitor.status = 'ACTION_REQUIRED';
+
+              monitor.status = "ACTION_REQUIRED";
               monitor.lastUpdate = Date.now();
-              logger.warn('Slippage update requires approval', {
+              logger.warn("Slippage update requires approval", {
                 executionId,
-                slippageUpdate
+                slippageUpdate,
               });
               return false;
-            }
+            },
           });
         });
 
         // Update monitor for completion
-        monitor.status = 'DONE';
+        monitor.status = "DONE";
         monitor.progress = 100;
         monitor.lastUpdate = Date.now();
 
         return {
           success: true,
           transactionHash: executionResult.txHash,
-          status: 'DONE' as ExecutionStatus,
+          status: "DONE" as ExecutionStatus,
           gasUsed: executionResult.gasUsed,
           executionTime: 0, // Will be set by caller
           steps,
           metadata: {
             originalRequest: request,
-            retryCount
-          }
+            retryCount,
+          },
         };
       } catch (error) {
         retryCount++;
-        
+
         if (retryCount > config.maxRetries) {
-          monitor.status = 'FAILED';
+          monitor.status = "FAILED";
           monitor.lastUpdate = Date.now();
-          
+
           throw error;
         }
 
-        logger.warn('Execution attempt failed, retrying', {
+        logger.warn("Execution attempt failed, retrying", {
           executionId,
           retryCount,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
 
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, config.retryDelay));
+        await new Promise((resolve) => setTimeout(resolve, config.retryDelay));
       }
     }
 
-    throw new Error('Max retries exceeded');
+    throw new Error("Max retries exceeded");
   }
 
   /**
@@ -420,10 +446,13 @@ class LiFiExecutionEngineService {
     // Update progress based on route status
     if (updatedRoute.steps) {
       const completedSteps = updatedRoute.steps.filter(
-        (step: any) => step.execution?.status === 'DONE'
+        (step: any) => step.execution?.status === "DONE"
       ).length;
-      
-      monitor.progress = Math.min(95, (completedSteps / updatedRoute.steps.length) * 100);
+
+      monitor.progress = Math.min(
+        95,
+        (completedSteps / updatedRoute.steps.length) * 100
+      );
       monitor.currentStep = completedSteps;
       monitor.lastUpdate = Date.now();
 
@@ -440,7 +469,7 @@ class LiFiExecutionEngineService {
             error: step.execution?.error,
             startTime: Date.now(),
             retryCount: 0,
-            tool: step.tool
+            tool: step.tool,
           };
         } else {
           // Update existing step
@@ -449,18 +478,18 @@ class LiFiExecutionEngineService {
           steps[index].gasUsed = step.execution?.gasUsed;
           steps[index].gasPrice = step.execution?.gasPrice;
           steps[index].error = step.execution?.error;
-          if (steps[index].status === 'DONE' && !steps[index].endTime) {
+          if (steps[index].status === "DONE" && !steps[index].endTime) {
             steps[index].endTime = Date.now();
           }
         }
       });
     }
 
-    logger.debug('Execution update', {
+    logger.debug("Execution update", {
       executionId,
       progress: monitor.progress,
       currentStep: monitor.currentStep,
-      status: monitor.status
+      status: monitor.status,
     });
   }
 
@@ -478,22 +507,22 @@ class LiFiExecutionEngineService {
     // Base time per step
     const baseTimePerStep = 60000; // 1 minute
     const steps = quote.includedSteps?.length || 1;
-    
+
     // Add extra time for cross-chain operations
     const isCrossChain = quote.action?.fromChainId !== quote.action?.toChainId;
     const crossChainMultiplier = isCrossChain ? 2 : 1;
-    
+
     return steps * baseTimePerStep * crossChainMultiplier;
   }
 
   /**
    * Get step type from step data
    */
-  private getStepType(step: any): ExecutionStep['type'] {
-    if (step.type === 'cross') return 'cross-chain';
-    if (step.type === 'swap') return 'swap';
-    if (step.type === 'bridge') return 'bridge';
-    return 'swap'; // default
+  private getStepType(step: any): ExecutionStep["type"] {
+    if (step.type === "cross") return "cross-chain";
+    if (step.type === "swap") return "swap";
+    if (step.type === "bridge") return "bridge";
+    return "swap"; // default
   }
 
   /**
@@ -501,14 +530,22 @@ class LiFiExecutionEngineService {
    */
   private mapExecutionStatus(status: string): ExecutionStatus {
     switch (status) {
-      case 'NOT_STARTED': return 'PENDING';
-      case 'STARTED': return 'STARTED';
-      case 'ACTION_REQUIRED': return 'ACTION_REQUIRED';
-      case 'CHAIN_SWITCH_REQUIRED': return 'CHAIN_SWITCH_REQUIRED';
-      case 'DONE': return 'DONE';
-      case 'FAILED': return 'FAILED';
-      case 'CANCELLED': return 'CANCELLED';
-      default: return 'EXECUTING';
+      case "NOT_STARTED":
+        return "PENDING";
+      case "STARTED":
+        return "STARTED";
+      case "ACTION_REQUIRED":
+        return "ACTION_REQUIRED";
+      case "CHAIN_SWITCH_REQUIRED":
+        return "CHAIN_SWITCH_REQUIRED";
+      case "DONE":
+        return "DONE";
+      case "FAILED":
+        return "FAILED";
+      case "CANCELLED":
+        return "CANCELLED";
+      default:
+        return "EXECUTING";
     }
   }
 
@@ -522,17 +559,18 @@ class LiFiExecutionEngineService {
   /**
    * Clean up old execution history
    */
-  cleanupHistory(maxAge: number = 86400000): void { // 24 hours default
+  cleanupHistory(maxAge: number = 86400000): void {
+    // 24 hours default
     const cutoff = Date.now() - maxAge;
-    
+
     for (const [id, result] of this.executionHistory.entries()) {
       if (result.executionTime && result.executionTime < cutoff) {
         this.executionHistory.delete(id);
       }
     }
-    
-    logger.info('Execution history cleaned up', {
-      remaining: this.executionHistory.size
+
+    logger.info("Execution history cleaned up", {
+      remaining: this.executionHistory.size,
     });
   }
 
@@ -546,22 +584,25 @@ class LiFiExecutionEngineService {
     averageExecutionTime: number;
   } {
     const total = this.executionHistory.size;
-    const successful = Array.from(this.executionHistory.values())
-      .filter(result => result.success).length;
-    
+    const successful = Array.from(this.executionHistory.values()).filter(
+      (result) => result.success
+    ).length;
+
     const executionTimes = Array.from(this.executionHistory.values())
-      .map(result => result.executionTime)
-      .filter(time => time > 0);
-    
-    const averageExecutionTime = executionTimes.length > 0
-      ? executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length
-      : 0;
-    
+      .map((result) => result.executionTime)
+      .filter((time) => time > 0);
+
+    const averageExecutionTime =
+      executionTimes.length > 0
+        ? executionTimes.reduce((sum, time) => sum + time, 0) /
+          executionTimes.length
+        : 0;
+
     return {
       active: this.activeExecutions.size,
       total,
       successRate: total > 0 ? successful / total : 0,
-      averageExecutionTime
+      averageExecutionTime,
     };
   }
 }

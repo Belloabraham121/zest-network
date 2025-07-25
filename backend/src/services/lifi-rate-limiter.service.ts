@@ -129,9 +129,9 @@ export class LiFiRateLimiter {
  * Global LI.FI rate limiter instance
  */
 export const lifiRateLimiter = new LiFiRateLimiter(
-  100, // max 100 concurrent requests
-  10, // 10 requests per second
-  100 // minimum 100ms between requests
+  50, // max 50 concurrent requests
+  5, // 5 requests per second
+  200 // minimum 200ms between requests
 );
 
 /**

@@ -541,6 +541,22 @@ export class WalletService {
     }
   }
 
+  async getDecryptedPrivateKeyByAddress(address: string): Promise<string | null> {
+    try {
+      const wallet = await this.dbService.getWalletByAddress(address);
+      if (!wallet) return null;
+
+      return this.decryptPrivateKey(
+        wallet.encryptedPrivateKey,
+        wallet.iv,
+        wallet.authTag
+      );
+    } catch (error) {
+      console.error("Error decrypting private key by address:", error);
+      return null;
+    }
+  }
+
   /**
    * Get wallet balances (MNT + USDC)
    */

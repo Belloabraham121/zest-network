@@ -8,6 +8,8 @@ import { lifiService } from "../services/lifi.service";
 import { lifiTokenManager } from "../services/lifi-token-manager.service";
 import { LiFiExecutionEngineService } from "../services/lifi-execution-engine.service";
 import { TransactionHistoryService } from "../services/transaction-history.service";
+import { lifiMonitoring } from "../services/lifi-monitoring.service";
+import { twilioService } from "../services/twilio.service";
 import { WhatsappPayload } from "../types";
 import { env } from "../config/env";
 import { getSupportedTokenSymbols, isTokenSupported } from "../config/tokens";
@@ -137,7 +139,11 @@ export class WebhooksController {
           break;
 
         case "SWAP":
-          response = await this.handleSwapCommand(phoneNumber, args);
+          response = await this.handleSwapCommand(
+            phoneNumber,
+            args,
+            "whatsapp"
+          );
           break;
 
         case "QUOTE":
@@ -180,11 +186,16 @@ export class WebhooksController {
           response = await this.handleStatsCommand(phoneNumber);
           break;
 
+        case "MONITOR":
+        case "PERFORMANCE":
+          response = this.handleMonitorCommand();
+          break;
+
         default:
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, HELP",
+              "Unknown command. Reply HELP to see available commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, MONITOR, HELP",
           };
       }
 
@@ -312,7 +323,7 @@ export class WebhooksController {
           break;
 
         case "SWAP":
-          response = await this.handleSwapCommand(phoneNumber, args);
+          response = await this.handleSwapCommand(phoneNumber, args, "sms");
           break;
 
         case "QUOTE":
@@ -342,7 +353,7 @@ export class WebhooksController {
           response = {
             success: false,
             message:
-              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, HELP",
+              "Unknown command. Reply HELP for commands.\n\nAvailable: CREATE, BALANCE, ADDRESS, QR, SEND, BRIDGE, SWAP, QUOTE, CHAINS, HISTORY, STATS, MONITOR, HELP",
           };
       }
 
@@ -665,6 +676,8 @@ export class WebhooksController {
       `HISTORY - View recent transactions\n` +
       `HISTORY 20 - View more transactions\n` +
       `STATS - View transaction statistics\n\n` +
+      `📊 System Monitoring:\n` +
+      `MONITOR - View LI.FI performance stats\n\n` +
       `💸 Transfer Examples:\n` +
       `SEND 10 ${primaryToken} +1234567890\n` +
       `SEND 0.5 ${primaryToken} 0x123...\n\n` +
@@ -896,7 +909,8 @@ export class WebhooksController {
 
   private async handleSwapCommand(
     phoneNumber: string,
-    args: string[]
+    args: string[],
+    channel: "sms" | "whatsapp" = "sms"
   ): Promise<{ success: boolean; message: string }> {
     try {
       if (args.length < 3) {
@@ -966,11 +980,14 @@ export class WebhooksController {
             (t) => t.symbol.toLowerCase() === toToken.toLowerCase()
           );
           const decimals = toTokenInfo?.decimals || 18;
-          toAmountFormatted = lifiTokenManager.fromWei(quote.estimate.toAmount, decimals);
+          toAmountFormatted = lifiTokenManager.fromWei(
+            quote.estimate.toAmount,
+            decimals
+          );
           // Format to reasonable decimal places
           const numAmount = parseFloat(toAmountFormatted);
           if (!isNaN(numAmount)) {
-            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, '');
+            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, "");
           }
         } catch (error) {
           console.warn("Failed to format toAmount:", error);
@@ -980,14 +997,26 @@ export class WebhooksController {
 
       const exchangeRate =
         toAmountFormatted !== "N/A" && amount
-          ? (
-              parseFloat(toAmountFormatted) /
-              parseFloat(amount)
-            ).toFixed(4)
+          ? (parseFloat(toAmountFormatted) / parseFloat(amount)).toFixed(4)
           : "N/A";
 
-      // Execute the swap automatically
+      // Send quote message first
+      const quoteMessage =
+        `💱 Swap Quote Generated\n\n` +
+        `From: ${amount} ${fromToken.toUpperCase()}\n` +
+        `To: ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+        `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+        `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n\n` +
+        `⏳ Executing swap in 2 seconds...`;
+
+      // Send quote message immediately
+      await twilioService.sendMessage(phoneNumber, quoteMessage, channel);
+
+      // Execute the swap automatically (with 2-second delay to avoid overwhelming LiFi endpoint)
       try {
+        // Wait 2 seconds before execution
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         const executionEngine = new LiFiExecutionEngineService();
         const executionRequest = {
           quote,
@@ -998,44 +1027,65 @@ export class WebhooksController {
         console.log(`🚀 Executing swap for ${phoneNumber}:`, {
           from: `${amount} ${fromToken.toUpperCase()}`,
           to: `~${toAmountFormatted} ${toToken.toUpperCase()}`,
-          wallet: wallet.address
+          wallet: wallet.address,
         });
 
-        const executionResult = await executionEngine.executeTransaction(executionRequest);
+        const executionResult = await executionEngine.executeTransaction(
+          executionRequest
+        );
 
         if (executionResult.success && executionResult.transactionHash) {
-          return {
-            success: true,
-            message:
-              `✅ Swap Executed Successfully!\n\n` +
-              `From: ${amount} ${fromToken.toUpperCase()}\n` +
-              `To: ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
-              `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
-              `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n\n` +
-              `🔗 Transaction Hash: ${executionResult.transactionHash}\n` +
-              `⏱️ Execution Time: ${Math.round((executionResult.executionTime || 0) / 1000)}s`,
-          };
+          // Get explorer URL for the chain
+          const chainMetadata = lifiChainManager.getChainMetadata(chainId);
+          const explorerUrl =
+            chainMetadata?.blockExplorer || "https://explorer.mantle.xyz";
+          const explorerLink = `${explorerUrl}/tx/${executionResult.transactionHash}`;
+
+          const successMessage =
+            `✅ Swap Executed Successfully!\n\n` +
+            `From: ${amount} ${fromToken.toUpperCase()}\n` +
+            `To: ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+            `Rate: 1 ${fromToken.toUpperCase()} = ${exchangeRate} ${toToken.toUpperCase()}\n` +
+            `Gas Fee: ${quote.estimate?.gasCosts?.[0]?.estimate || "N/A"}\n\n` +
+            `🔗 Transaction Hash: ${executionResult.transactionHash}\n` +
+            `🌐 View on Explorer: ${explorerLink}\n` +
+            `⏱️ Execution Time: ${Math.round(
+              (executionResult.executionTime || 0) / 1000
+            )}s`;
+
+          // Send success message
+          await twilioService.sendMessage(phoneNumber, successMessage, channel);
         } else {
-          return {
-            success: false,
-            message:
-              `❌ Swap Execution Failed\n\n` +
-              `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
-              `Error: ${executionResult.error || "Unknown execution error"}\n\n` +
-              `Please try again or contact support.`,
-          };
+          const failureMessage =
+            `❌ Swap Execution Failed\n\n` +
+            `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+            `Error: ${executionResult.error || "Unknown execution error"}\n\n` +
+            `Please try again or contact support.`;
+
+          // Send failure message
+          await twilioService.sendMessage(phoneNumber, failureMessage, channel);
         }
       } catch (executionError) {
         console.error("Swap execution failed:", executionError);
-        return {
-          success: false,
-          message:
-            `❌ Swap Execution Failed\n\n` +
-            `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
-            `Error: ${executionError instanceof Error ? executionError.message : String(executionError)}\n\n` +
-            `Please try again or contact support.`,
-        };
+        const errorMessage =
+          `❌ Swap Execution Failed\n\n` +
+          `Quote: ${amount} ${fromToken.toUpperCase()} → ~${toAmountFormatted} ${toToken.toUpperCase()}\n` +
+          `Error: ${
+            executionError instanceof Error
+              ? executionError.message
+              : String(executionError)
+          }\n\n` +
+          `Please try again or contact support.`;
+
+        // Send error message
+        await twilioService.sendMessage(phoneNumber, errorMessage, channel);
       }
+
+      // Return simple acknowledgment since actual results are sent separately
+      return {
+        success: true,
+        message: `💱 Swap initiated! You'll receive updates on the execution status.`,
+      };
     } catch (error) {
       console.error("Error handling swap command:", error);
       return {
@@ -1128,11 +1178,14 @@ export class WebhooksController {
             (t) => t.symbol.toLowerCase() === toToken.toLowerCase()
           );
           const decimals = toTokenInfo?.decimals || 18;
-          toAmountFormatted = lifiTokenManager.fromWei(quote.estimate.toAmount, decimals);
+          toAmountFormatted = lifiTokenManager.fromWei(
+            quote.estimate.toAmount,
+            decimals
+          );
           // Format to reasonable decimal places
           const numAmount = parseFloat(toAmountFormatted);
           if (!isNaN(numAmount)) {
-            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, '');
+            toAmountFormatted = numAmount.toFixed(6).replace(/\.?0+$/, "");
           }
         } catch (error) {
           console.warn("Failed to format toAmount:", error);
@@ -1142,10 +1195,7 @@ export class WebhooksController {
 
       const exchangeRate =
         toAmountFormatted !== "N/A" && amount
-          ? (
-              parseFloat(toAmountFormatted) /
-              parseFloat(amount)
-            ).toFixed(4)
+          ? (parseFloat(toAmountFormatted) / parseFloat(amount)).toFixed(4)
           : "N/A";
 
       return {
@@ -1272,12 +1322,29 @@ export class WebhooksController {
 
         message += `${typeIcon} ${tx.type.toUpperCase()} ${status}\n`;
         message += `Amount: ${tx.fromToken.amount} ${tx.fromToken.symbol}\n`;
-        if (tx.toToken && tx.toToken.symbol !== tx.fromToken.symbol) {
+
+        // Show recipient information for transfers
+        if (tx.type === "transfer" && (tx.recipientPhone || tx.recipient)) {
+          const recipientInfo = tx.recipientPhone || tx.recipient || "Unknown";
+          message += `To: ${recipientInfo}\n`;
+        } else if (tx.toToken && tx.toToken.symbol !== tx.fromToken.symbol) {
           message += `To: ${tx.toToken.amount || "N/A"} ${tx.toToken.symbol}\n`;
         }
+
         message += `Date: ${date}\n`;
+
+        // Show complete hash with explorer link
         if (tx.txHash) {
-          message += `Hash: ${tx.txHash.substring(0, 10)}...\n`;
+          const chainMetadata = lifiChainManager.getChainMetadata(
+            tx.fromToken.chainId
+          );
+          if (chainMetadata && chainMetadata.blockExplorer) {
+            const explorerUrl = `${chainMetadata.blockExplorer}/tx/${tx.txHash}`;
+            message += `Hash: ${tx.txHash}\n`;
+            message += `Explorer: ${explorerUrl}\n`;
+          } else {
+            message += `Hash: ${tx.txHash}\n`;
+          }
         }
         message += `\n`;
       }
@@ -1340,6 +1407,35 @@ export class WebhooksController {
       return {
         success: false,
         message: "Error retrieving transaction statistics. Please try again.",
+      };
+    }
+  }
+
+  private handleMonitorCommand(): { success: boolean; message: string } {
+    try {
+      const stats = lifiMonitoring.getStats();
+      const recommendations = lifiMonitoring.getOptimizationRecommendations();
+
+      const message =
+        `📊 LI.FI Performance Monitor:\n\n` +
+        `⏱️ Uptime: ${stats.uptime.hours}h\n` +
+        `📡 API Calls: ${stats.apiUsage.totalCalls} (${stats.apiUsage.callsPerHour}/hr)\n` +
+        `🚨 Rate Limits: ${stats.apiUsage.rateLimitHits} hits (${stats.apiUsage.rateLimitHitRate})\n` +
+        `💾 Cache Hit Rate: ${stats.cache.hitRate}\n` +
+        `🔄 Available Tokens: ${stats.rateLimiter.availableTokens}/${stats.rateLimiter.maxTokens}\n\n` +
+        `💡 Recommendations:\n` +
+        recommendations.map((rec) => `• ${rec}`).join("\n") +
+        `\n\nReply "HELP" for available commands`;
+
+      return {
+        success: true,
+        message,
+      };
+    } catch (error) {
+      console.error("Error handling monitor command:", error);
+      return {
+        success: false,
+        message: "Error retrieving performance stats. Please try again.",
       };
     }
   }

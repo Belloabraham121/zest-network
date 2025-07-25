@@ -133,6 +133,10 @@ export class DatabaseService {
     return WalletModel.findOne({ phone }).exec();
   }
 
+  async getWalletByAddress(address: string): Promise<Wallet | null> {
+    return WalletModel.findOne({ address }).exec();
+  }
+
   async saveWallet(wallet: Wallet): Promise<void> {
     await WalletModel.create(wallet);
   }

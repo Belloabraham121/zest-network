@@ -130,7 +130,17 @@ class LiFiQuoteManagerService {
       const cacheKey = this.generateCacheKey(request);
       const cached = this.getCachedQuote(cacheKey);
 
+      console.log('🔍 Debug - Quote Manager getQuote called:', {
+        fromAddress: request.fromAddress,
+        cacheKey,
+        hasCachedQuote: !!cached
+      });
+
       if (cached) {
+        console.log('🔍 Debug - Returning cached quote with action:', {
+          actionFromAddress: (cached.action as any)?.fromAddress,
+          requestFromAddress: request.fromAddress
+        });
         logger.info("Returning cached quote", { cacheKey });
         return cached;
       }
@@ -143,8 +153,19 @@ class LiFiQuoteManagerService {
       const requestWithSlippage = { ...request, slippage };
 
       // Get quote from LI.FI
+      console.log('🔍 Debug - About to call lifiService.getQuote with:', {
+        fromAddress: requestWithSlippage.fromAddress,
+        slippage: requestWithSlippage.slippage
+      });
+      
       const quote = await executeWithRateLimit(async () => {
         return await this.lifiService.getQuote(requestWithSlippage);
+      });
+
+      console.log('🔍 Debug - Raw quote received from LiFi service:', {
+        actionFromAddress: (quote?.action as any)?.fromAddress,
+        requestFromAddress: request.fromAddress,
+        quoteExists: !!quote
       });
 
       if (!quote) {
@@ -153,6 +174,11 @@ class LiFiQuoteManagerService {
 
       // Process and enhance quote
       const processedQuote = await this.processQuote(quote, request);
+      
+      console.log('🔍 Debug - Processed quote action:', {
+        actionFromAddress: (processedQuote?.action as any)?.fromAddress,
+        originalRequestFromAddress: request.fromAddress
+      });
 
       // Cache the quote
       this.cacheQuote(cacheKey, processedQuote);
@@ -412,7 +438,7 @@ class LiFiQuoteManagerService {
         feeCosts: quote.estimate?.feeCosts || [],
         gasCosts: quote.estimate?.gasCosts || [],
       },
-      includedSteps: quote.includedSteps || [],
+      includedSteps: quote.includedSteps || quote.steps || [],
       transactionRequest: quote.transactionRequest,
       tags: this.generateQuoteTags(quote, request),
     };

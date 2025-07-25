@@ -14,6 +14,30 @@ export class LiFiTokenManager {
 
   constructor() {
     this.initializePopularTokens();
+    // Preload tokens for popular chains in background to reduce API calls
+    this.preloadPopularChainTokens();
+  }
+
+  /**
+   * Preload tokens for popular chains in background
+   */
+  private async preloadPopularChainTokens(): Promise<void> {
+    // Popular chains to preload (most commonly used)
+    const popularChains = [1, 137, 56, 42161, 10, 5000]; // ETH, Polygon, BSC, Arbitrum, Optimism, Mantle
+    
+    // Delay preloading to avoid hitting rate limits on startup
+    setTimeout(async () => {
+      for (const chainId of popularChains) {
+        try {
+          // Add delay between each chain to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await this.getTokensForChain(chainId);
+        } catch (error) {
+          console.warn(`⚠️ Failed to preload tokens for chain ${chainId}:`, error);
+        }
+      }
+      console.log(`🚀 Preloaded tokens for ${popularChains.length} popular chains`);
+    }, 5000); // Wait 5 seconds after startup
   }
 
   /**

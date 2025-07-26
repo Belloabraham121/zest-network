@@ -422,24 +422,48 @@ class LiFiQuoteManagerService {
     quote: any,
     request: QuoteRequest
   ): Promise<QuoteResponse> {
-    // Add metadata and enhancements
+    // Fix address mismatch by ensuring action addresses match request addresses
+    const correctedAction = quote.action ? {
+      ...quote.action,
+      fromAddress: request.fromAddress, // Force the correct fromAddress
+      toAddress: request.toAddress || request.fromAddress // Force the correct toAddress
+    } : quote.action;
+
+    // Also fix addresses in all steps to prevent step-level address mismatches
+    const correctedSteps = (quote.includedSteps || quote.steps || []).map((step: any) => {
+      if (step.action) {
+        return {
+          ...step,
+          action: {
+            ...step.action,
+            fromAddress: request.fromAddress,
+            toAddress: request.toAddress || request.fromAddress
+          }
+        };
+      }
+      return step;
+    });
+
+    console.log('🔍 Debug - processQuote address correction:', {
+      originalActionFromAddress: quote.action?.fromAddress,
+      originalActionToAddress: quote.action?.toAddress,
+      requestFromAddress: request.fromAddress,
+      requestToAddress: request.toAddress,
+      correctedActionFromAddress: correctedAction?.fromAddress,
+      correctedActionToAddress: correctedAction?.toAddress,
+      stepsCount: correctedSteps.length,
+      stepAddressesCorrected: correctedSteps.filter((s: any) => s.action?.fromAddress === request.fromAddress && s.action?.toAddress === (request.toAddress || request.fromAddress)).length
+    });
+
+    // Preserve original quote structure while applying address corrections
     const processedQuote: QuoteResponse = {
+      ...quote, // Preserve all original properties
       id: `quote_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: request.fromChain === request.toChain ? "lifi" : "cross-chain",
-      tool: quote.tool,
-      toolDetails: quote.toolDetails,
-      action: quote.action,
-      estimate: {
-        fromAmount: quote.estimate?.fromAmount || request.fromAmount,
-        toAmount: quote.estimate?.toAmount || "0",
-        toAmountMin: quote.estimate?.toAmountMin || "0",
-        approvalAddress: quote.estimate?.approvalAddress,
-        executionDuration: quote.estimate?.executionDuration || 0,
-        feeCosts: quote.estimate?.feeCosts || [],
-        gasCosts: quote.estimate?.gasCosts || [],
-      },
-      includedSteps: quote.includedSteps || quote.steps || [],
-      transactionRequest: quote.transactionRequest,
+      action: correctedAction,
+      // Preserve both includedSteps and steps properties if they exist
+      ...(quote.includedSteps && { includedSteps: correctedSteps }),
+      ...(quote.steps && { steps: correctedSteps }),
       tags: this.generateQuoteTags(quote, request),
     };
 

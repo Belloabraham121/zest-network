@@ -4,6 +4,7 @@ import { lifiExecutionEngine } from "../services/lifi-execution-engine.service";
 import { lifiCrossChainExecutor } from "../services/lifi-cross-chain-executor.service";
 import { lifiService } from "../services/lifi.service";
 import { lifiChainManager } from "../services/lifi-chain-manager.service";
+import { lifiTokenManager } from "../services/lifi-token-manager.service";
 import { lifiToolsProvider } from "../services/lifi-tools-provider.service";
 import { TransactionHistoryService } from "../services/transaction-history.service";
 import { logger } from "../utils/logger";
@@ -598,6 +599,42 @@ export class LiFiController {
       res.status(500).json({
         success: false,
         message: "Failed to get supported pairs",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Clear all caches
+   * POST /api/lifi/cache/clear
+   */
+  async clearCache(req: Request, res: Response): Promise<void> {
+    try {
+      // Clear quote manager cache
+      lifiQuoteManager.clearCache();
+
+      // Clear other service caches
+      lifiChainManager.clearCache();
+      lifiTokenManager.clearCache();
+      lifiToolsProvider.clearCache();
+
+      logger.info("All LiFi caches cleared successfully");
+
+      res.status(200).json({
+        success: true,
+        message: "All caches cleared successfully",
+        data: {
+          clearedCaches: ["quotes", "routes", "chains", "tokens", "tools"],
+        },
+      });
+    } catch (error) {
+      logger.error("Error clearing caches", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to clear caches",
         error: error instanceof Error ? error.message : String(error),
       });
     }

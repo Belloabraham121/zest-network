@@ -541,7 +541,9 @@ export class WalletService {
     }
   }
 
-  async getDecryptedPrivateKeyByAddress(address: string): Promise<string | null> {
+  async getDecryptedPrivateKeyByAddress(
+    address: string
+  ): Promise<string | null> {
     try {
       const wallet = await this.dbService.getWalletByAddress(address);
       if (!wallet) return null;

@@ -348,13 +348,86 @@ class LiFiExecutionEngineService {
 
         // Transform quote to route format for LI.FI execution
         // Use the original fromAddress from the request so the wallet that requested the quote signs the transaction
+        const steps = request.quote.includedSteps || [];
+        
+        // Process steps to handle fee collection correctly
+        // Fee collection should NOT be standalone steps, but embedded within real DEX steps
+        const feeCollectionSteps = steps.filter(step => step.tool === 'feeCollection');
+        const realDexSteps = steps.filter(step => step.tool !== 'feeCollection');
+        
+        // Helper function to fix invalid 'protocol' type in includedSteps
+        const fixIncludedStepsTypes = (step: any) => {
+          if (step.includedSteps && Array.isArray(step.includedSteps)) {
+            step.includedSteps = step.includedSteps.map((includedStep: any) => {
+              if (includedStep.type === 'protocol' && includedStep.tool === 'feeCollection') {
+                return {
+                  ...includedStep,
+                  type: 'swap' // Fix invalid 'protocol' type to valid 'swap' type
+                };
+              }
+              return includedStep;
+            });
+          }
+          return step;
+        };
+        
+        let processedSteps;
+        if (feeCollectionSteps.length > 0 && realDexSteps.length > 0) {
+          // Embed fee collection steps within the first real DEX step's includedSteps
+          // This is the correct structure according to LiFi API
+          processedSteps = realDexSteps.map((step, index) => {
+            if (index === 0) {
+              // First real DEX step should contain fee collection in includedSteps
+              const existingIncludedSteps = step.includedSteps || [];
+              const feeStepsForInclusion = feeCollectionSteps.map(feeStep => ({
+                ...feeStep,
+                type: 'swap' // Ensure fee collection has valid type
+              }));
+              
+              return fixIncludedStepsTypes({
+                ...step,
+                includedSteps: [...feeStepsForInclusion, ...existingIncludedSteps]
+              });
+            }
+            return fixIncludedStepsTypes(step);
+          });
+        } else if (feeCollectionSteps.length > 0) {
+          // Only fee collection steps - this shouldn't happen in normal flow
+          // But handle gracefully by skipping fee collection (no real DEX to attach to)
+          console.warn('⚠️ Only fee collection steps found, skipping execution');
+          processedSteps = [];
+        } else {
+          // No fee collection, just process normal steps
+          processedSteps = realDexSteps.map(step => fixIncludedStepsTypes(step));
+        }
+        
         const route = {
           ...request.quote,
-          steps: request.quote.includedSteps || [],
+          steps: processedSteps,
           fromAmount: request.quote.estimate?.fromAmount || "0",
           toAmount: request.quote.estimate?.toAmount || "0",
           fromAddress: request.fromAddress, // Use the user's wallet address that requested the quote
         };
+        
+        console.log("🔍 Debug - Route structure for execution:", {
+          stepsCount: route.steps.length,
+          steps: route.steps.map(s => ({ tool: s.tool, type: s.type, hasIncludedSteps: !!s.includedSteps })),
+          fromAddress: route.fromAddress
+        });
+        
+        // Detailed logging of each step structure
+        route.steps.forEach((step, index) => {
+          console.log(`🔍 Step ${index + 1} detailed structure:`, {
+            id: step.id,
+            type: step.type,
+            tool: step.tool,
+            hasAction: !!step.action,
+            hasEstimate: !!step.estimate,
+            hasToolDetails: !!step.toolDetails,
+            includedStepsCount: step.includedSteps?.length || 0,
+            fullStep: JSON.stringify(step, null, 2)
+          });
+        });
 
         // Execute the route using LI.FI
         const executionResult = await executeWithRateLimit(async () => {

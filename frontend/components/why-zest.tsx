@@ -59,7 +59,7 @@ export function WhyZest() {
     {
       icon: Zap,
       title: "Fast & cheap",
-      description: "Low fees and quick transactions on Mantle blockchain.",
+      description: "Low fees and quick transactions on blockchain.",
       color: "text-primary bg-primary/10",
       gradient: "from-primary/10 to-primary/20",
     },

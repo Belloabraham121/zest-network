@@ -11,8 +11,8 @@ router.post("/wallet/create", apiController.createWallet.bind(apiController));
 router.get("/wallet/balance/:phoneNumber", apiController.getBalance.bind(apiController));
 
 // Transfer endpoints
-router.post("/transfer/mnt", apiController.transferMNT.bind(apiController));
-router.post("/transfer/mnt/direct", apiController.directMNTTransfer.bind(apiController));
+router.post("/transfer/eth", apiController.transferETH.bind(apiController));
+router.post("/transfer/eth/direct", apiController.directETHTransfer.bind(apiController));
 router.post("/transfer/usdc", apiController.transferUSDC.bind(apiController));
 router.post("/transfer/phone", apiController.transferToPhone.bind(apiController));
 

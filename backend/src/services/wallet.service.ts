@@ -48,7 +48,7 @@ export class WalletService {
       this.twilioClient = null;
     }
 
-    this.provider = new ethers.JsonRpcProvider(env.MANTLE_RPC_URL);
+    this.provider = new ethers.JsonRpcProvider(env.MORPH_RPC_URL);
   }
 
   private generateDeterministicWallet(
@@ -148,7 +148,7 @@ export class WalletService {
       const qrData = {
         address: walletAddress,
         network: "Mantle",
-        chainId: env.MANTLE_CHAIN_ID,
+        chainId: env.MORPH_CHAIN_ID,
       };
 
       const qrText = encodeURIComponent(JSON.stringify(qrData));
@@ -205,7 +205,7 @@ export class WalletService {
       const message =
         `🎉 Wallet Created Successfully!\n\n` +
         `Your Mantle wallet address:\n${walletAddress}\n\n` +
-        `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n` +
+        `Network: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\n` +
         `You can now receive USDC and other tokens!\n\n` +
         `Save this address safely. Reply HELP for more commands.`;
 
@@ -285,7 +285,7 @@ export class WalletService {
       await this.twilioClient.messages.create({
         from: env.TWILIO_WHATSAPP_NUMBER,
         to: `whatsapp:${to}`,
-        body: `📱 QR Code for your Mantle wallet:\n\nAddress: ${walletAddress}\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\nScan to share your wallet address!`,
+        body: `📱 QR Code for your Morph L2 wallet:\n\nAddress: ${walletAddress}\nNetwork: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\n\nScan to share your wallet address!`,
         mediaUrl: [qrCodeDataURL],
       });
 
@@ -483,7 +483,7 @@ export class WalletService {
           messageError
         );
 
-        const fallbackMessage = `🔲 Your Wallet QR Code\n\nWallet Address:\n${wallet.address}\n\nTo generate a QR code:\n1. Visit any QR code generator\n2. Enter your wallet address\n3. Save the QR code for easy sharing\n\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})`;
+        const fallbackMessage = `🔲 Your Wallet QR Code\n\nWallet Address:\n${wallet.address}\n\nTo generate a QR code:\n1. Visit any QR code generator\n2. Enter your wallet address\n3. Save the QR code for easy sharing\n\nNetwork: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})`;
 
         try {
           if (!this.twilioClient) {
@@ -560,7 +560,7 @@ export class WalletService {
   }
 
   /**
-   * Get wallet balances (MNT + USDC)
+   * Get wallet balances (ETH + USDC)
    */
   async getWalletBalances(phoneNumber: string): Promise<{
     success: boolean;
@@ -597,9 +597,9 @@ export class WalletService {
   }
 
   /**
-   * Transfer MNT tokens
+   * Transfer ETH tokens
    */
-  async transferMNT(
+  async transferETH(
     senderPhone: string,
     recipientAddress: string,
     amount: string,
@@ -648,7 +648,7 @@ export class WalletService {
       }
 
       // Execute transfer
-      const result = await blockchainService.transferMNT(
+      const result = await blockchainService.transferETH(
         privateKey,
         recipientAddress,
         amount,
@@ -658,10 +658,10 @@ export class WalletService {
 
       return result;
     } catch (error) {
-      console.error("Error transferring MNT:", error);
+      console.error("Error transferring ETH:", error);
       return {
         success: false,
-        message: "Failed to transfer MNT. Please try again later.",
+        message: "Failed to transfer ETH. Please try again later.",
       };
     }
   }
@@ -999,8 +999,8 @@ export class WalletService {
       }
 
       const tokenEmoji =
-        tokenSymbol === "MNT" ? "💎" : tokenSymbol === "USDC" ? "💵" : "🪙";
-      const explorerUrl = `https://mantlescan.xyz/tx/${txHash}`;
+        tokenSymbol === "ETH" ? "💎" : tokenSymbol === "USDC" ? "💵" : "🪙";
+      const explorerUrl = `https://explorer-holesky.morphl2.io/tx/${txHash}`;
 
       // Send notification to recipient
       const recipientMessage = walletCreated
@@ -1188,7 +1188,7 @@ export class WalletService {
         );
 
         // Add appropriate emoji for each token
-        const emoji = symbol === "MNT" ? "💎" : symbol === "USDC" ? "💵" : "🪙";
+        const emoji = symbol === "ETH" ? "💎" : symbol === "USDC" ? "💵" : "🪙";
         balanceLines += `${emoji} ${symbol}: ${formattedBalance} ${symbol}\n`;
       }
 
@@ -1196,7 +1196,7 @@ export class WalletService {
         `💰 Your Wallet Balance\n\n` +
         `Address: ${balances.address}\n\n` +
         balanceLines +
-        `\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\n` +
+        `\nNetwork: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\n\n` +
         `Supported tokens: ${supportedTokens.join(", ")}\n\n` +
         `Reply SEND to transfer tokens.`;
 

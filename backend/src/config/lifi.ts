@@ -34,8 +34,7 @@ const DEFAULT_SUPPORTED_CHAINS: SupportedChain[] = [
   10, // Optimism
   43114, // Avalanche
   250, // Fantom
-  5000, // Mantle Mainnet
-  5003, // Mantle Sepolia (testnet)
+  2810, // Morph L2 Holesky (testnet)
 ];
 
 /**

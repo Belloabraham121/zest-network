@@ -112,24 +112,13 @@ export class LiFiChainManager {
         avgBlockTime: 1,
         gasMultiplier: 1.1,
       },
-      // Mantle Mainnet
-      5000: {
-        name: "Mantle",
-        symbol: "MNT",
-        nativeCurrency: "MNT",
-        blockExplorer: "https://explorer.mantle.xyz",
-        rpcUrls: ["https://rpc.mantle.xyz"],
-        isTestnet: false,
-        avgBlockTime: 2,
-        gasMultiplier: 1.2,
-      },
-      // Mantle Sepolia Testnet
-      5003: {
-        name: "Mantle Sepolia",
-        symbol: "MNT",
-        nativeCurrency: "MNT",
-        blockExplorer: "https://explorer.sepolia.mantle.xyz",
-        rpcUrls: ["https://rpc.sepolia.mantle.xyz"],
+      // Morph L2 Holesky Testnet
+      2810: {
+        name: "Morph L2",
+        symbol: "ETH",
+        nativeCurrency: "ETH",
+        blockExplorer: "https://explorer-holesky.morphl2.io",
+        rpcUrls: ["https://rpc-holesky.morphl2.io"],
         isTestnet: true,
         avgBlockTime: 2,
         gasMultiplier: 1.2,
@@ -291,7 +280,7 @@ export class LiFiChainManager {
       "BNB",
       "AVAX",
       "FTM",
-      "MNT",
+      "ETH",
     ];
 
     const sortedTokens = tokens.sort((a, b) => {

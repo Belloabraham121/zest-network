@@ -56,10 +56,10 @@ export class ApiController {
   }
 
   /**
-   * Transfer MNT tokens (phone-based)
-   * POST /api/transfer/mnt
+   * Transfer ETH tokens (phone-based)
+   * POST /api/transfer/eth
    */
-  async transferMNT(req: Request, res: Response): Promise<void> {
+  async transferETH(req: Request, res: Response): Promise<void> {
     try {
       const { senderPhone, recipientAddress, amount, recipientPhone } =
         req.body;
@@ -72,7 +72,7 @@ export class ApiController {
         return;
       }
 
-      const result = await walletService.transferMNT(
+      const result = await walletService.transferETH(
         senderPhone,
         recipientAddress,
         amount.toString(),
@@ -81,7 +81,7 @@ export class ApiController {
 
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-      console.error("Error transferring MNT:", error);
+      console.error("Error transferring ETH:", error);
       res.status(500).json({
         success: false,
         message: "Internal server error",
@@ -90,10 +90,10 @@ export class ApiController {
   }
 
   /**
-   * Direct MNT transfer to address
-   * POST /api/transfer/mnt/direct
+   * Direct ETH transfer to address
+   * POST /api/transfer/eth/direct
    */
-  async directMNTTransfer(req: Request, res: Response): Promise<void> {
+  async directETHTransfer(req: Request, res: Response): Promise<void> {
     try {
       const { fromPrivateKey, toAddress, amount } = req.body;
 
@@ -124,7 +124,7 @@ export class ApiController {
         return;
       }
 
-      const result = await blockchainService.transferMNT(
+      const result = await blockchainService.transferETH(
         fromPrivateKey,
         toAddress,
         amount.toString(),
@@ -134,7 +134,7 @@ export class ApiController {
 
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
-      console.error("Error in direct MNT transfer:", error);
+      console.error("Error in direct ETH transfer:", error);
       res.status(500).json({
         success: false,
         message: "Internal server error",
@@ -193,10 +193,10 @@ export class ApiController {
         return;
       }
 
-      if (token !== "MNT" && token !== "USDC") {
+      if (token !== "ETH" && token !== "USDC") {
         res.status(400).json({
           success: false,
-          message: "Invalid token. Supported tokens: MNT, USDC",
+          message: "Invalid token. Supported tokens: ETH, USDC",
         });
         return;
       }
@@ -205,7 +205,7 @@ export class ApiController {
         senderPhone,
         recipientPhone,
         amount.toString(),
-        token as "MNT" | "USDC"
+        token as "ETH" | "USDC"
       );
 
       res.status(result.success ? 200 : 400).json(result);
@@ -230,7 +230,7 @@ export class ApiController {
       res.status(200).json({
         success: true,
         relayer: {
-          balance: `${parseFloat(balance).toFixed(4)} MNT`,
+          balance: `${parseFloat(balance).toFixed(4)} ETH`,
           gasPrice: `${gasPrice} gwei`,
           status: parseFloat(balance) > 0.1 ? "healthy" : "low_balance",
         },
@@ -257,7 +257,7 @@ export class ApiController {
         service: "zest-wallet-api",
         timestamp: new Date().toISOString(),
         relayer: {
-          balance: `${parseFloat(relayerBalance).toFixed(4)} MNT`,
+          balance: `${parseFloat(relayerBalance).toFixed(4)} ETH`,
           status: parseFloat(relayerBalance) > 0.1 ? "healthy" : "low_balance",
         },
       });

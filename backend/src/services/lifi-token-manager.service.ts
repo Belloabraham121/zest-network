@@ -23,7 +23,7 @@ export class LiFiTokenManager {
    */
   private async preloadPopularChainTokens(): Promise<void> {
     // Popular chains to preload (most commonly used)
-    const popularChains = [1, 137, 56, 42161, 10, 5000]; // ETH, Polygon, BSC, Arbitrum, Optimism, Mantle
+    const popularChains = [1, 137, 56, 42161, 10, 2810]; // ETH, Polygon, BSC, Arbitrum, Optimism, Morph L2
     
     // Delay preloading to avoid hitting rate limits on startup
     setTimeout(async () => {
@@ -136,10 +136,8 @@ export class LiFiTokenManager {
         "TOMB",
         "SPELL",
       ],
-      // Mantle
-      5000: ["MNT", "USDC", "USDT", "WETH", "WBTC"],
-      // Mantle Sepolia
-      5003: ["MNT", "USDC", "USDT", "WETH"],
+      // Morph L2 Holesky
+    2810: ["ETH", "USDC", "USDT", "WETH"],
     };
 
     Object.entries(popularTokensByChain).forEach(([chainId, tokens]) => {

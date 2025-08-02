@@ -429,8 +429,8 @@ export class WebhooksController {
 
       const { address, ...balances } = balanceResult.balances;
 
-      // Get MNT and USDC balances with proper fallbacks
-      const mntBalance = balances.mnt || balances.MNT || "0";
+      // Get ETH and USDC balances with proper fallbacks
+      const ethBalance = balances.eth || balances.ETH || "0";
       const usdcBalance = balances.usdc || balances.USDC || "0";
 
       return {
@@ -438,9 +438,9 @@ export class WebhooksController {
         message:
           `💰 Your Wallet Balance\n\n` +
           `Address: ${address}\n\n` +
-          `💎 MNT: ${parseFloat(mntBalance).toFixed(4)} MNT\n` +
+          `💎 ETH: ${parseFloat(ethBalance).toFixed(4)} ETH\n` +
           `💵 USDC: ${parseFloat(usdcBalance).toFixed(2)} USDC\n\n` +
-          `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\n` +
+          `Network: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\n\n` +
           `Reply SEND to transfer tokens.`,
       };
     } catch (error) {
@@ -467,7 +467,7 @@ export class WebhooksController {
 
       return {
         success: true,
-        message: `Your Mantle wallet address:\n${wallet.address}\n\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\nSave this address safely!`,
+        message: `Your Morph L2 wallet address:\n${wallet.address}\n\nNetwork: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\nSave this address safely!`,
       };
     } catch (error) {
       console.error("Error handling address command:", error);
@@ -503,7 +503,7 @@ export class WebhooksController {
 
       return {
         success: true,
-        message: `QR Code sent for your wallet!\n\nAddress: ${wallet.address}\n\nNetwork: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})\n\nCheck your messages for the QR code image.`,
+        message: `QR Code sent for your wallet!\n\nAddress: ${wallet.address}\n\nNetwork: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})\n\nCheck your messages for the QR code image.`,
       };
     } catch (error) {
       console.error("Error handling QR command:", error);
@@ -655,7 +655,7 @@ export class WebhooksController {
 
   private handleHelpCommand(): { success: boolean; message: string } {
     const supportedTokens = getSupportedTokenSymbols();
-    const primaryToken = supportedTokens[0] || "MNT";
+    const primaryToken = supportedTokens[0] || "ETH";
 
     const helpMessage =
       `🔹 Zest Wallet Commands:\n\n` +
@@ -666,6 +666,8 @@ export class WebhooksController {
       `QR - Generate QR code for wallet\n` +
       `SEND - Transfer tokens\n` +
       `TOKENS - List supported tokens\n` +
+      `PAY BILLS - Pay utility bills\n` +
+      `CONVERT - Convert to local currency\n` +
       `HELP - Show this help\n\n` +
       `🌉 Cross-Chain Commands:\n` +
       `BRIDGE - Bridge tokens between chains\n` +
@@ -687,7 +689,7 @@ export class WebhooksController {
       `QUOTE 0.5 ETH USDC ethereum arbitrum\n\n` +
       `📋 Supported Tokens: ${supportedTokens.join(", ")}\n\n` +
       `Gas fees paid by Zest! 🚀\n` +
-      `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})`;
+      `Network: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})`;
 
     return {
       success: true,
@@ -800,7 +802,7 @@ export class WebhooksController {
         message += `   Decimals: ${config.decimals}\n\n`;
       }
 
-      message += `Network: Mantle (Chain ID: ${env.MANTLE_CHAIN_ID})`;
+      message += `Network: Morph L2 (Chain ID: ${env.MORPH_CHAIN_ID})`;
 
       return {
         success: true,
@@ -939,7 +941,7 @@ export class WebhooksController {
       }
 
       // Default to Mantle chain or specified chain
-      let chainId = env.MANTLE_CHAIN_ID;
+      let chainId = env.MORPH_CHAIN_ID;
       if (chain) {
         const chains = await lifiChainManager.getSupportedChains();
         const chainData = chains.find(
@@ -1038,7 +1040,7 @@ export class WebhooksController {
           // Get explorer URL for the chain
           const chainMetadata = lifiChainManager.getChainMetadata(chainId);
           const explorerUrl =
-            chainMetadata?.blockExplorer || "https://explorer.mantle.xyz";
+            chainMetadata?.blockExplorer || "https://explorer-holesky.morphl2.io";
           const explorerLink = `${explorerUrl}/tx/${executionResult.transactionHash}`;
 
           const successMessage =
@@ -1126,8 +1128,8 @@ export class WebhooksController {
       }
 
       // Determine chain IDs
-      let fromChainId = env.MANTLE_CHAIN_ID;
-      let toChainId = env.MANTLE_CHAIN_ID;
+      let fromChainId = env.MORPH_CHAIN_ID;
+    let toChainId = env.MORPH_CHAIN_ID;
 
       if (fromChain && toChain) {
         const chains = await lifiChainManager.getSupportedChains();

@@ -30,12 +30,35 @@ import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
   mainnet,
-  polygon,
   arbitrum,
+  polygon,
   optimism,
   base,
-  mantle,
 } from "viem/chains";
+
+// Morph L2 Holesky chain configuration
+const morphL2 = {
+  id: 2810,
+  name: 'Morph L2 Holesky',
+  network: 'morphl2-holesky',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ethereum',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc-holesky.morphl2.io'],
+    },
+    public: {
+      http: ['https://rpc-holesky.morphl2.io'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Morph Explorer', url: 'https://explorer-holesky.morphl2.io' },
+  },
+  testnet: true,
+} as const;
 import { walletService } from "./wallet.service";
 import { env } from "../config/env";
 
@@ -91,7 +114,7 @@ export class LiFiService {
   private async _doInitialize(): Promise<void> {
     try {
       validateLiFiConfig();
-      const chains = [mainnet, arbitrum, optimism, polygon, base, mantle];
+      const chains = [mainnet, arbitrum, optimism, polygon, base, morphL2];
 
       createConfig({
         integrator: lifiConfig.integrator,
@@ -126,8 +149,8 @@ export class LiFiService {
               return createWalletClient({
                 account,
                 chain: chainId
-                  ? chains.find((c) => c.id === chainId) || mantle
-                  : mantle,
+                  ? chains.find((c) => c.id === chainId) || morphL2
+                  : morphL2,
                 transport: http(),
               });
             },
@@ -327,7 +350,7 @@ export class LiFiService {
               arbitrum,
               optimism,
               base,
-              mantle,
+              morphL2,
             ];
             const targetChain = supportedChains.find(
               (chain) => chain.id === chainId

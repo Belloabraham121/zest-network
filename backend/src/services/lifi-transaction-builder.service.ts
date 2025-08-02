@@ -611,8 +611,7 @@ class LiFiTransactionBuilderService {
       10: "1000000", // Optimism: 0.001 gwei
       43114: "25000000000", // Avalanche: 25 gwei
       250: "20000000000", // Fantom: 20 gwei
-      5000: "20000000000", // Mantle: 20 gwei
-      5003: "20000000000", // Mantle Sepolia: 20 gwei
+      2810: "20000000000", // Morph L2 Holesky: 20 gwei
     };
 
     const basePrice = fallbackPrices[chainId] || "20000000000";
@@ -821,7 +820,7 @@ class LiFiTransactionBuilderService {
         42161: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Arbitrum
         10: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Optimism
         8453: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Base
-        5000: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Mantle
+        2810: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Morph L2 Holesky
       };
 
       return contractAddresses[chainId] || null;

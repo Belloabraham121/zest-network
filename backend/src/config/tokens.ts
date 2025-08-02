@@ -3,14 +3,14 @@ export interface TokenConfig {
   name: string;
   address: string;
   decimals: number;
-  isNative?: boolean; // For native tokens like MNT
+  isNative?: boolean; // For native tokens like ETH
   enabled: boolean;
 }
 
 export const SUPPORTED_TOKENS: Record<string, TokenConfig> = {
-  MNT: {
-    symbol: "MNT",
-    name: "Mantle",
+  ETH: {
+    symbol: "ETH",
+    name: "Ethereum",
     address: "0x0000000000000000000000000000000000000000",
     decimals: 18,
     isNative: true,

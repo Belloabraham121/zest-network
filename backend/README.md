@@ -144,8 +144,8 @@ TWILIO_PHONE_NUMBER=+17402793730
 TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 
 # Blockchain Configuration
-MANTLE_RPC_URL=https://sepolia.mantlescan.xyz/
-MANTLE_CHAIN_ID=5003
+MORPH_RPC_URL=https://rpc-quicknode-holesky.morphl2.io
+MORPH_CHAIN_ID=2810
 RELAYER_PRIVATE_KEY=your_relayer_private_key
 
 # Wallet Security Configuration

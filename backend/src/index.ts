@@ -56,7 +56,7 @@ app.get("/health", (req, res) => {
       wallets: "/api/wallets",
       tokens: "/api/tokens",
       transfers: "/api/transfer",
-      directMNT: "/api/transfer/mnt/direct",
+      directETH: "/api/transfer/eth/direct",
       balance: "/api/wallet/balance",
       relayer: "/api/relayer/status",
       lifi: "/api/lifi",
@@ -71,13 +71,13 @@ app.get("/", (req, res) => {
     message: "🎉 Zest Wallet Backend API",
     version: "1.0.0",
     description:
-      "Custodial wallet service with MNT token transfers via WhatsApp/SMS",
+      "Custodial wallet service with ETH token transfers via WhatsApp/SMS",
     features: [
       "🔐 Secure custodial wallets",
-      "💎 MNT & USDC token transfers",
+      "💎 ETH & USDC token transfers",
       "⛽ Gasless transactions (relayer pays fees)",
       "📱 WhatsApp & SMS integration",
-      "🔗 Mantle blockchain support",
+      "🔗 Morph L2 blockchain support",
     ],
     nodemon: "✅ Auto-restart enabled with nodemon",
     endpoints: {
@@ -88,7 +88,7 @@ app.get("/", (req, res) => {
       wallets: "/api/wallets",
       tokens: "/api/tokens",
       transfers: "/api/transfer",
-      directMNT: "/api/transfer/mnt/direct",
+      directETH: "/api/transfer/eth/direct",
       balance: "/api/wallet/balance",
       relayer: "/api/relayer/status",
       lifi: "/api/lifi",
@@ -110,7 +110,7 @@ app.listen(PORT, () => {
   console.log(`🪙 Tokens API: http://localhost:${PORT}/api/tokens`);
   console.log(`💎 Transfer API: http://localhost:${PORT}/api/transfer`);
   console.log(
-    `🚀 Direct MNT Transfer: http://localhost:${PORT}/api/transfer/mnt/direct`
+    `🚀 Direct ETH Transfer: http://localhost:${PORT}/api/transfer/eth/direct`
   );
   console.log(`💰 Balance API: http://localhost:${PORT}/api/wallet/balance`);
   console.log(`⛽ Relayer Status: http://localhost:${PORT}/api/relayer/status`);

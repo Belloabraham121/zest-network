@@ -15,7 +15,7 @@ export class BlockchainService {
   private dbService: DatabaseService;
 
   constructor() {
-    this.provider = new ethers.JsonRpcProvider(env.MANTLE_RPC_URL);
+    this.provider = new ethers.JsonRpcProvider(env.MORPH_RPC_URL);
     this.relayerWallet = new ethers.Wallet(
       env.RELAYER_PRIVATE_KEY,
       this.provider
@@ -28,15 +28,15 @@ export class BlockchainService {
   }
 
   /**
-   * Get MNT balance for a wallet address
+   * Get ETH balance for a wallet address
    */
-  async getMNTBalance(address: string): Promise<string> {
+  async getETHBalance(address: string): Promise<string> {
     try {
       const balance = await this.provider.getBalance(address);
       return ethers.formatEther(balance);
     } catch (error) {
-      console.error(`Error getting MNT balance for ${address}:`, error);
-      throw new Error("Failed to get MNT balance");
+      console.error(`Error getting ETH balance for ${address}:`, error);
+      throw new Error("Failed to get ETH balance");
     }
   }
 
@@ -69,9 +69,9 @@ export class BlockchainService {
   }
 
   /**
-   * Transfer MNT tokens with relayer paying gas fees
+   * Transfer ETH tokens with relayer paying gas fees
    */
-  async transferMNT(
+  async transferETH(
     fromPrivateKey: string,
     toAddress: string,
     amount: string,
@@ -89,14 +89,14 @@ export class BlockchainService {
       const fromWallet = new ethers.Wallet(fromPrivateKey, this.provider);
       const amountWei = ethers.parseEther(amount);
 
-      // Check sender's MNT balance
+      // Check sender's ETH balance
       const senderBalance = await this.provider.getBalance(fromWallet.address);
       if (senderBalance < amountWei) {
         return {
           success: false,
-          message: `Insufficient MNT balance. You have ${ethers.formatEther(
+          message: `Insufficient ETH balance. You have ${ethers.formatEther(
             senderBalance
-          )} MNT, but tried to send ${amount} MNT.`,
+          )} ETH, but tried to send ${amount} ETH.`,
         };
       }
 
@@ -111,7 +111,7 @@ export class BlockchainService {
       const gasCost =
         gasEstimate * (gasPrice.gasPrice || ethers.parseUnits("20", "gwei"));
 
-      // Check if relayer has enough MNT for gas
+      // Check if relayer has enough ETH for gas
       const relayerBalance = await this.provider.getBalance(
         this.relayerWallet.address
       );
@@ -119,7 +119,7 @@ export class BlockchainService {
         console.error(
           `Relayer insufficient balance. Has: ${ethers.formatEther(
             relayerBalance
-          )} MNT, needs: ${ethers.formatEther(gasCost)} MNT for gas`
+          )} ETH, needs: ${ethers.formatEther(gasCost)} ETH for gas`
         );
         return {
           success: false,
@@ -140,7 +140,7 @@ export class BlockchainService {
         sender: senderPhone,
         recipient: recipientPhone || toAddress,
         amount: parseFloat(amount),
-        token: "MNT",
+        token: "ETH",
         status: "pending",
         timestamp: Math.floor(Date.now() / 1000),
       };
@@ -152,8 +152,8 @@ export class BlockchainService {
           fromWallet.address,
           toAddress,
           amount,
-          "MNT",
-          env.MANTLE_CHAIN_ID,
+          "ETH",
+          env.MORPH_CHAIN_ID,
           "whatsapp",
           recipientPhone
         );
@@ -185,7 +185,7 @@ export class BlockchainService {
         gasPrice: gasPrice.gasPrice,
       });
 
-      console.log(`✅ MNT transfer initiated: ${tx.hash}`);
+      console.log(`✅ ETH transfer initiated: ${tx.hash}`);
 
       // Wait for confirmation
       const receipt = await tx.wait();
@@ -203,11 +203,11 @@ export class BlockchainService {
           transactionHistoryId
         );
 
-        console.log(`✅ MNT transfer completed: ${tx.hash}`);
+        console.log(`✅ ETH transfer completed: ${tx.hash}`);
         return {
           success: true,
           txHash: tx.hash,
-          message: `Successfully transferred ${amount} MNT to ${toAddress}`,
+          message: `Successfully transferred ${amount} ETH to ${toAddress}`,
           transaction,
         };
       } else {
@@ -226,7 +226,7 @@ export class BlockchainService {
         };
       }
     } catch (error) {
-      console.error("Error transferring MNT:", error);
+      console.error("Error transferring ETH:", error);
 
       // Mark transaction as failed if it was created
       if (transactionHistoryId) {
@@ -240,7 +240,7 @@ export class BlockchainService {
 
       return {
         success: false,
-        message: "Failed to transfer MNT. Please try again later.",
+        message: "Failed to transfer ETH. Please try again later.",
       };
     }
   }
@@ -302,7 +302,7 @@ export class BlockchainService {
       const gasCost =
         gasEstimate * (gasPrice.gasPrice || ethers.parseUnits("20", "gwei"));
 
-      // Check if relayer has enough MNT for gas
+      // Check if relayer has enough ETH for gas
       const relayerBalance = await this.provider.getBalance(
         this.relayerWallet.address
       );
@@ -310,7 +310,7 @@ export class BlockchainService {
         console.error(
           `Relayer insufficient balance for gas. Has: ${ethers.formatEther(
             relayerBalance
-          )} MNT, needs: ${ethers.formatEther(gasCost)} MNT`
+          )} ETH, needs: ${ethers.formatEther(gasCost)} ETH`
         );
         return {
           success: false,
@@ -333,7 +333,7 @@ export class BlockchainService {
           toAddress,
           amount,
           symbol,
-          env.MANTLE_CHAIN_ID,
+          env.MORPH_CHAIN_ID,
           "whatsapp",
           recipientPhone
         );
@@ -454,8 +454,8 @@ export class BlockchainService {
 
         try {
           if (tokenConfig.isNative) {
-            // Handle native token (MNT)
-            balances[symbol.toLowerCase()] = await this.getMNTBalance(address);
+            // Handle native token (ETH)
+            balances[symbol.toLowerCase()] = await this.getETHBalance(address);
           } else {
             // Handle ERC-20 tokens
             balances[symbol.toLowerCase()] = await this.getTokenBalance(
@@ -528,7 +528,7 @@ export class BlockchainService {
 
       // Use appropriate transfer method based on token type
       if (tokenConfig.isNative) {
-        return await this.transferMNT(
+        return await this.transferETH(
           fromPrivateKey,
           toAddress,
           amount,

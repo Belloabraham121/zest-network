@@ -130,17 +130,10 @@ class LiFiQuoteManagerService {
       const cacheKey = this.generateCacheKey(request);
       const cached = this.getCachedQuote(cacheKey);
 
-      console.log('🔍 Debug - Quote Manager getQuote called:', {
-        fromAddress: request.fromAddress,
-        cacheKey,
-        hasCachedQuote: !!cached
-      });
+
 
       if (cached) {
-        console.log('🔍 Debug - Returning cached quote with action:', {
-          actionFromAddress: (cached.action as any)?.fromAddress,
-          requestFromAddress: request.fromAddress
-        });
+
         logger.info("Returning cached quote", { cacheKey });
         return cached;
       }
@@ -153,20 +146,13 @@ class LiFiQuoteManagerService {
       const requestWithSlippage = { ...request, slippage };
 
       // Get quote from LI.FI
-      console.log('🔍 Debug - About to call lifiService.getQuote with:', {
-        fromAddress: requestWithSlippage.fromAddress,
-        slippage: requestWithSlippage.slippage
-      });
-      
+
+
       const quote = await executeWithRateLimit(async () => {
         return await this.lifiService.getQuote(requestWithSlippage);
       });
 
-      console.log('🔍 Debug - Raw quote received from LiFi service:', {
-        actionFromAddress: (quote?.action as any)?.fromAddress,
-        requestFromAddress: request.fromAddress,
-        quoteExists: !!quote
-      });
+
 
       if (!quote) {
         throw new Error("Failed to get quote from LI.FI");
@@ -174,11 +160,8 @@ class LiFiQuoteManagerService {
 
       // Process and enhance quote
       const processedQuote = await this.processQuote(quote, request);
-      
-      console.log('🔍 Debug - Processed quote action:', {
-        actionFromAddress: (processedQuote?.action as any)?.fromAddress,
-        originalRequestFromAddress: request.fromAddress
-      });
+
+
 
       // Cache the quote
       this.cacheQuote(cacheKey, processedQuote);
@@ -423,37 +406,32 @@ class LiFiQuoteManagerService {
     request: QuoteRequest
   ): Promise<QuoteResponse> {
     // Fix address mismatch by ensuring action addresses match request addresses
-    const correctedAction = quote.action ? {
-      ...quote.action,
-      fromAddress: request.fromAddress, // Force the correct fromAddress
-      toAddress: request.toAddress || request.fromAddress // Force the correct toAddress
-    } : quote.action;
+    const correctedAction = quote.action
+      ? {
+          ...quote.action,
+          fromAddress: request.fromAddress, // Force the correct fromAddress
+          toAddress: request.toAddress || request.fromAddress, // Force the correct toAddress
+        }
+      : quote.action;
 
     // Also fix addresses in all steps to prevent step-level address mismatches
-    const correctedSteps = (quote.includedSteps || quote.steps || []).map((step: any) => {
-      if (step.action) {
-        return {
-          ...step,
-          action: {
-            ...step.action,
-            fromAddress: request.fromAddress,
-            toAddress: request.toAddress || request.fromAddress
-          }
-        };
+    const correctedSteps = (quote.includedSteps || quote.steps || []).map(
+      (step: any) => {
+        if (step.action) {
+          return {
+            ...step,
+            action: {
+              ...step.action,
+              fromAddress: request.fromAddress,
+              toAddress: request.toAddress || request.fromAddress,
+            },
+          };
+        }
+        return step;
       }
-      return step;
-    });
+    );
 
-    console.log('🔍 Debug - processQuote address correction:', {
-      originalActionFromAddress: quote.action?.fromAddress,
-      originalActionToAddress: quote.action?.toAddress,
-      requestFromAddress: request.fromAddress,
-      requestToAddress: request.toAddress,
-      correctedActionFromAddress: correctedAction?.fromAddress,
-      correctedActionToAddress: correctedAction?.toAddress,
-      stepsCount: correctedSteps.length,
-      stepAddressesCorrected: correctedSteps.filter((s: any) => s.action?.fromAddress === request.fromAddress && s.action?.toAddress === (request.toAddress || request.fromAddress)).length
-    });
+
 
     // Preserve original quote structure while applying address corrections
     const processedQuote: QuoteResponse = {

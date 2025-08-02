@@ -699,7 +699,10 @@ class LiFiTransactionBuilderService {
     try {
       // Check if this is a token transfer (not native ETH)
       const fromToken = quote.action?.fromToken;
-      if (!fromToken || fromToken.address === '0x0000000000000000000000000000000000000000') {
+      if (
+        !fromToken ||
+        fromToken.address === "0x0000000000000000000000000000000000000000"
+      ) {
         // Native token transfers don't need approval
         return false;
       }
@@ -711,11 +714,11 @@ class LiFiTransactionBuilderService {
         return false;
       }
 
-      logger.info('Checking token approval requirement', {
+      logger.info("Checking token approval requirement", {
         fromAddress,
         tokenAddress: fromToken.address,
         spenderAddress,
-        amount: quote.estimate.fromAmount
+        amount: quote.estimate.fromAmount,
       });
 
       // For now, assume approval is needed for ERC20 tokens
@@ -723,8 +726,8 @@ class LiFiTransactionBuilderService {
       // using the ERC20 contract's allowance(owner, spender) method
       return true;
     } catch (error) {
-      logger.warn('Failed to check approval requirement', {
-        error: error instanceof Error ? error.message : String(error)
+      logger.warn("Failed to check approval requirement", {
+        error: error instanceof Error ? error.message : String(error),
       });
       return false;
     }
@@ -738,44 +741,51 @@ class LiFiTransactionBuilderService {
   ): Promise<PreparedTransaction | null> {
     try {
       const fromToken = request.quote.action?.fromToken;
-      if (!fromToken || fromToken.address === '0x0000000000000000000000000000000000000000') {
+      if (
+        !fromToken ||
+        fromToken.address === "0x0000000000000000000000000000000000000000"
+      ) {
         // No approval needed for native tokens
         return null;
       }
 
-      const spenderAddress = request.quote.action?.fromChainId ? 
-        await this.getContractAddress(request.quote.action.fromChainId) : null;
-      
+      const spenderAddress = request.quote.action?.fromChainId
+        ? await this.getContractAddress(request.quote.action.fromChainId)
+        : null;
+
       if (!spenderAddress) {
-        logger.warn('Could not determine spender address for approval');
+        logger.warn("Could not determine spender address for approval");
         return null;
       }
 
       // ERC20 approve function signature: approve(address spender, uint256 amount)
-      const approveData = this.encodeApprovalData(spenderAddress, request.quote.estimate.fromAmount);
-      
+      const approveData = this.encodeApprovalData(
+        spenderAddress,
+        request.quote.estimate.fromAmount
+      );
+
       const approvalTransaction: PreparedTransaction = {
         to: fromToken.address,
         data: approveData,
-        value: '0',
+        value: "0",
         chainId: request.quote.action?.fromChainId || 1,
-        gasLimit: '100000', // Standard gas limit for ERC20 approval
-        gasPrice: request.gasPrice || '0',
+        gasLimit: "100000", // Standard gas limit for ERC20 approval
+        gasPrice: request.gasPrice || "0",
         maxFeePerGas: request.maxFeePerGas,
         maxPriorityFeePerGas: request.maxPriorityFeePerGas,
-        nonce: request.nonce
+        nonce: request.nonce,
       };
 
-      logger.info('Built approval transaction', {
+      logger.info("Built approval transaction", {
         tokenAddress: fromToken.address,
         spenderAddress,
-        amount: request.quote.estimate.fromAmount
+        amount: request.quote.estimate.fromAmount,
       });
 
       return approvalTransaction;
     } catch (error) {
-      logger.error('Failed to build approval transaction', {
-        error: error instanceof Error ? error.message : String(error)
+      logger.error("Failed to build approval transaction", {
+        error: error instanceof Error ? error.message : String(error),
       });
       return null;
     }
@@ -786,15 +796,15 @@ class LiFiTransactionBuilderService {
    */
   private encodeApprovalData(spenderAddress: string, amount: string): string {
     // ERC20 approve function signature: approve(address,uint256)
-    const functionSignature = '0x095ea7b3';
-    
+    const functionSignature = "0x095ea7b3";
+
     // Pad spender address to 32 bytes
-    const paddedSpender = spenderAddress.replace('0x', '').padStart(64, '0');
-    
+    const paddedSpender = spenderAddress.replace("0x", "").padStart(64, "0");
+
     // Convert amount to hex and pad to 32 bytes
     const amountBigInt = BigInt(amount);
-    const paddedAmount = amountBigInt.toString(16).padStart(64, '0');
-    
+    const paddedAmount = amountBigInt.toString(16).padStart(64, "0");
+
     return functionSignature + paddedSpender + paddedAmount;
   }
 
@@ -806,19 +816,19 @@ class LiFiTransactionBuilderService {
       // This would typically get the LiFi contract address for the specific chain
       // For now, return a placeholder - in production, this should be fetched from LiFi SDK
       const contractAddresses: { [key: number]: string } = {
-        1: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Ethereum
-        137: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Polygon
-        42161: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Arbitrum
-        10: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Optimism
-        8453: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Base
-        5000: '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE', // Mantle
+        1: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Ethereum
+        137: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Polygon
+        42161: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Arbitrum
+        10: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Optimism
+        8453: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Base
+        5000: "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE", // Mantle
       };
-      
+
       return contractAddresses[chainId] || null;
     } catch (error) {
-      logger.error('Failed to get contract address', {
+      logger.error("Failed to get contract address", {
         chainId,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       });
       return null;
     }

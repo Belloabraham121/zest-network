@@ -16,3 +16,5 @@ test-balance.sh
 test-send-command.sh
 test-enhanced-transfer.sh
 test-sms-fallback.sh
+ENHANCED_TRANSFER_FEATURE.md
+LIFI_IMPLEMENTATION_PLAN.md

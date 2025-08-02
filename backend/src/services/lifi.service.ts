@@ -52,25 +52,25 @@ export class LiFiService {
   // ERC20 ABI for allowance and approve functions
   private readonly ERC20_ABI = [
     {
-      "name": "allowance",
-      "inputs": [
-        { "internalType": "address", "name": "owner", "type": "address" },
-        { "internalType": "address", "name": "spender", "type": "address" }
+      name: "allowance",
+      inputs: [
+        { internalType: "address", name: "owner", type: "address" },
+        { internalType: "address", name: "spender", type: "address" },
       ],
-      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-      "stateMutability": "view",
-      "type": "function"
+      outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+      stateMutability: "view",
+      type: "function",
     },
     {
-      "name": "approve",
-      "inputs": [
-        { "internalType": "address", "name": "spender", "type": "address" },
-        { "internalType": "uint256", "name": "amount", "type": "uint256" }
+      name: "approve",
+      inputs: [
+        { internalType: "address", name: "spender", type: "address" },
+        { internalType: "uint256", name: "amount", type: "uint256" },
       ],
-      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
+      outputs: [{ internalType: "bool", name: "", type: "bool" }],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
   ];
 
   constructor() {}
@@ -91,14 +91,7 @@ export class LiFiService {
   private async _doInitialize(): Promise<void> {
     try {
       validateLiFiConfig();
-      const chains = [
-        mainnet,
-        arbitrum,
-        optimism,
-        polygon,
-        base,
-        mantle,
-      ];
+      const chains = [mainnet, arbitrum, optimism, polygon, base, mantle];
 
       createConfig({
         integrator: lifiConfig.integrator,
@@ -113,10 +106,7 @@ export class LiFiService {
                 );
               }
 
-              console.log("🔍 Debug - Creating wallet client for:", {
-                currentUserAddress: this.currentUserAddress,
-                chainId,
-              });
+
 
               const userPrivateKey =
                 await walletService.getDecryptedPrivateKeyByAddress(
@@ -131,17 +121,7 @@ export class LiFiService {
               const privateKey = userPrivateKey as `0x${string}`;
               const account = privateKeyToAccount(privateKey);
 
-              console.log(
-                "🔍 Debug - Wallet client created with address:",
-                account.address
-              );
-              console.log("🔍 Debug - Address mismatch check:", {
-                requestedAddress: this.currentUserAddress,
-                derivedAddress: account.address,
-                addressesMatch:
-                  this.currentUserAddress.toLowerCase() ===
-                  account.address.toLowerCase(),
-              });
+
 
               return createWalletClient({
                 account,
@@ -288,30 +268,14 @@ export class LiFiService {
       // Set user address for quote generation to use user's private key
       if (request.fromAddress) {
         this.currentUserAddress = request.fromAddress;
-        console.log("🔍 Debug - Quote generation with address:", {
-          fromAddress: request.fromAddress,
-          currentUserAddress: this.currentUserAddress,
-        });
+
       }
 
-      console.log("🔍 Debug - About to call LiFi getQuote with request:", {
-        fromAddress: request.fromAddress,
-        fromChain: request.fromChain,
-        toChain: request.toChain,
-        fromToken: request.fromToken,
-        toToken: request.toToken,
-        fromAmount: request.fromAmount,
-      });
+
 
       const quote = await executeWithRateLimit(() =>
         getQuote({ ...request, ...getLiFiRequestOptions() })
       );
-
-      console.log("🔍 Debug - Quote generated with action:", {
-        actionFromAddress: quote.action?.fromAddress,
-        requestFromAddress: request.fromAddress,
-        fullQuoteAction: quote.action,
-      });
       return quote as LiFiQuoteResponse;
     } catch (error) {
       console.error("❌ Failed to get quote:", error);
@@ -335,13 +299,7 @@ export class LiFiService {
 
       this.currentUserAddress = route.fromAddress;
 
-      // Debug: Log addresses for troubleshooting
-      console.log("🔍 Debug - Route execution addresses:", {
-        routeFromAddress: route.fromAddress,
-        currentUserAddress: this.currentUserAddress,
-        actionFromAddress: route.action?.fromAddress,
-        actionFromToken: route.action?.fromToken?.address,
-      });
+
 
       // Handle approvals for each step that requires them
       for (const step of route.steps) {
@@ -359,12 +317,7 @@ export class LiFiService {
             );
           },
           updateTransactionRequestHook: async (txRequest: any) => {
-            console.log("🔍 Debug - Transaction request hook:", {
-              to: txRequest.to,
-              data: txRequest.data?.substring(0, 10) + '...',
-              value: txRequest.value,
-              from: txRequest.from
-            });
+
             return txRequest;
           },
           switchChainHook: async (chainId: number) => {
@@ -418,16 +371,16 @@ export class LiFiService {
       };
     } catch (error) {
       console.error("❌ Failed to execute route:", error);
-      
+
       // Enhanced error logging for approval-related issues
-      if (error instanceof Error && error.message.includes('approval')) {
+      if (error instanceof Error && error.message.includes("approval")) {
         console.error("❌ Approval-related error detected:", {
           message: error.message,
           fromToken: route.action?.fromToken,
-          fromAddress: route.fromAddress
+          fromAddress: route.fromAddress,
         });
       }
-      
+
       throw this.handleError(error, "executeRoute");
     } finally {
       this.currentUserAddress = null;
@@ -437,55 +390,44 @@ export class LiFiService {
   /**
    * Handle approval for a specific step if needed
    */
-  private async handleStepApproval(step: any, fromAddress: string): Promise<void> {
+  private async handleStepApproval(
+    step: any,
+    fromAddress: string
+  ): Promise<void> {
     try {
       const approvalAddress = step.estimate?.approvalAddress;
       const fromToken = step.action?.fromToken;
-      
-      console.log("🔍 Debug - Processing step:", {
-        tool: step.tool,
-        stepType: step.type,
-        tokenAddress: fromToken?.address,
-        tokenSymbol: fromToken?.symbol,
-        approvalAddress,
-        amount: step.estimate?.fromAmount
-      });
+
+
 
       // For fee collection steps with native tokens, skip approval as they don't need ERC20 approval
-      if (step.tool === 'feeCollection') {
-        console.log("🔍 Debug - Handling fee collection step:", {
-          tool: step.tool,
-          tokenAddress: fromToken?.address,
-          tokenSymbol: fromToken?.symbol,
-          approvalAddress,
-          isNativeToken: !fromToken || fromToken.address === '0x0000000000000000000000000000000000000000'
-        });
-        
+      if (step.tool === "feeCollection") {
+
+
         // Fee collection steps with native tokens don't require approval
-        if (!fromToken || fromToken.address === '0x0000000000000000000000000000000000000000') {
-          console.log("🔍 Debug - Fee collection step uses native token, no approval needed");
+        if (
+          !fromToken ||
+          fromToken.address === "0x0000000000000000000000000000000000000000"
+        ) {
+
           return;
         }
-        
+
         // For ERC20 tokens in fee collection, continue with regular approval logic below
-        console.log("🔍 Debug - Fee collection step uses ERC20 token, checking approval");
       }
-      
+
       // Handle regular ERC20 token approvals
-      if (!approvalAddress || !fromToken || 
-          fromToken.address === '0x0000000000000000000000000000000000000000' ||
-          fromToken.address === '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
+      if (
+        !approvalAddress ||
+        !fromToken ||
+        fromToken.address === "0x0000000000000000000000000000000000000000" ||
+        fromToken.address === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      ) {
         // No approval needed for native tokens without fee collection
         return;
       }
 
-      console.log("🔍 Debug - Checking ERC20 approval for step:", {
-        tool: step.tool,
-        tokenAddress: fromToken.address,
-        tokenSymbol: fromToken.symbol,
-        approvalAddress,
-        amount: step.estimate.fromAmount
-      });
+
 
       // Check current allowance
       const currentAllowance = await this.checkAllowance(
@@ -496,13 +438,10 @@ export class LiFiService {
       );
 
       const requiredAmount = BigInt(step.estimate.fromAmount);
-      
+
       if (currentAllowance < requiredAmount) {
-        console.log("🔍 Debug - Insufficient allowance, creating approval transaction:", {
-          currentAllowance: currentAllowance.toString(),
-          requiredAmount: requiredAmount.toString()
-        });
-        
+
+
         await this.createApprovalTransaction(
           fromToken.address,
           fromAddress,
@@ -510,11 +449,6 @@ export class LiFiService {
           step.estimate.fromAmount,
           step.action.fromChainId
         );
-      } else {
-        console.log("🔍 Debug - Sufficient allowance already exists:", {
-          currentAllowance: currentAllowance.toString(),
-          requiredAmount: requiredAmount.toString()
-        });
       }
     } catch (error) {
       console.error("❌ Error handling step approval:", error);
@@ -533,9 +467,16 @@ export class LiFiService {
   ): Promise<bigint> {
     try {
       const provider = this.getProviderForChain(chainId);
-      const tokenContract = new ethers.Contract(tokenAddress, this.ERC20_ABI, provider);
-      
-      const allowance = await tokenContract.allowance(ownerAddress, spenderAddress);
+      const tokenContract = new ethers.Contract(
+        tokenAddress,
+        this.ERC20_ABI,
+        provider
+      );
+
+      const allowance = await tokenContract.allowance(
+        ownerAddress,
+        spenderAddress
+      );
       return BigInt(allowance.toString());
     } catch (error) {
       console.error("❌ Error checking allowance:", error);
@@ -554,26 +495,27 @@ export class LiFiService {
     chainId: number
   ): Promise<void> {
     try {
-      const userPrivateKey = await walletService.getDecryptedPrivateKeyByAddress(fromAddress);
+      const userPrivateKey =
+        await walletService.getDecryptedPrivateKeyByAddress(fromAddress);
       if (!userPrivateKey) {
         throw new Error(`No private key found for address: ${fromAddress}`);
       }
 
       const provider = this.getProviderForChain(chainId);
       const wallet = new ethers.Wallet(userPrivateKey, provider);
-      const tokenContract = new ethers.Contract(tokenAddress, this.ERC20_ABI, wallet);
-      
-      console.log("🔍 Debug - Sending approval transaction:", {
+      const tokenContract = new ethers.Contract(
         tokenAddress,
-        spenderAddress,
-        amount
-      });
-      
+        this.ERC20_ABI,
+        wallet
+      );
+
+
+
       const tx = await tokenContract.approve(spenderAddress, amount);
-      console.log("🔍 Debug - Approval transaction sent:", tx.hash);
-      
+
+
       const receipt = await tx.wait();
-      console.log("🔍 Debug - Approval transaction confirmed:", receipt.transactionHash);
+
     } catch (error) {
       console.error("❌ Error creating approval transaction:", error);
       throw error;
@@ -585,19 +527,19 @@ export class LiFiService {
    */
   private getProviderForChain(chainId: number): ethers.JsonRpcProvider {
     const rpcUrls: { [key: number]: string } = {
-      1: 'https://eth.llamarpc.com',
-      137: 'https://polygon.llamarpc.com',
-      42161: 'https://arbitrum.llamarpc.com',
-      10: 'https://optimism.llamarpc.com',
-      8453: 'https://base.llamarpc.com',
-      5000: 'https://rpc.mantle.xyz',
+      1: "https://eth.llamarpc.com",
+      137: "https://polygon.llamarpc.com",
+      42161: "https://arbitrum.llamarpc.com",
+      10: "https://optimism.llamarpc.com",
+      8453: "https://base.llamarpc.com",
+      5000: "https://rpc.mantle.xyz",
     };
-    
+
     const rpcUrl = rpcUrls[chainId];
     if (!rpcUrl) {
       throw new Error(`No RPC URL configured for chain ID: ${chainId}`);
     }
-    
+
     return new ethers.JsonRpcProvider(rpcUrl);
   }
 

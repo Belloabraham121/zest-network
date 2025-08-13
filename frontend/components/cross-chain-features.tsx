@@ -35,6 +35,12 @@ export function CrossChainFeatures() {
   }, []);
 
   const supportedChains = [
+    {
+      name: "Morph",
+      symbol: "MORPH",
+      color: "bg-gradient-to-r from-blue-500 to-purple-500",
+      logo: "🦋",
+    },
     { name: "Ethereum", symbol: "ETH", color: "bg-blue-500", logo: "🔷" },
     { name: "Polygon", symbol: "MATIC", color: "bg-purple-500", logo: "🟣" },
     { name: "Arbitrum", symbol: "ARB", color: "bg-blue-400", logo: "🔵" },
